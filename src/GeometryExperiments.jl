@@ -1,5 +1,31 @@
 module GeometryExperiments
 
-# Write your package code here.
+using Meshes: Point, Vec
+using StaticArrays: SVector
+import LinearAlgebra: norm
 
-end
+include("transforms.jl")
+include("primitives.jl")
+include("coordinate_systems.jl")
+
+export
+    # transforms
+    Transform, Transformed,
+    Scaling, Scaled,
+    Rotation, Rotated,
+    Translation, Translated,
+    ComposedTransform,
+    can_apply, apply,
+
+    # primitives
+    NormedPrimitive,
+    HyperSphere, HyperCube,
+    Ellipsoid,
+    Box,
+
+    # coordinate systems
+    CoordinateSystem,
+    Cartesian
+
+
+end # module

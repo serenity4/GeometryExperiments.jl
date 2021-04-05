@@ -2,5 +2,5 @@ using GeometryExperiments
 using Test
 
 @testset "GeometryExperiments.jl" begin
-    # Write your tests here.
+    @test Transformed(HyperCube(0.2), Scaling(1., 2., 3.)) === Box(0.2, Scaling(1., 2., 3.))
 end
