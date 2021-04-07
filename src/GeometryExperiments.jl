@@ -1,11 +1,13 @@
 module GeometryExperiments
 
-using Meshes: Point, Vec
+using Meshes: Point, Vec, coordinates
 using StaticArrays: SVector
 import LinearAlgebra: norm
+import Base: in, inv
 
 include("transforms.jl")
 include("primitives.jl")
+include("intersections.jl")
 include("coordinate_systems.jl")
 
 export
@@ -13,6 +15,7 @@ export
     Transform, Transformed,
     Scaling, Scaled,
     Rotation, Rotated,
+    RotationType, Quaternion,
     Translation, Translated,
     ComposedTransform,
     can_apply, apply,

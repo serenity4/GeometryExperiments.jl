@@ -11,15 +11,16 @@ Rotation around the origin implemented from a rotation type `R`.
 struct Rotation{T,R<:RotationType{T}} <: Transform{T}
   rot::R
 end
+(r::Rotation)(p) = r.rot * p
 
-Base.inv(r::Rotation) = typeof(r)(-r.rot)
+inv(r::Rotation) = typeof(r)(-r.rot)
 
-const Rotated{O,R} = Transformed{O,R}
+const Rotated{O,R<:Rotation} = Transformed{O,R}
+Rotated(obj::O, transf::R) where {O,R} = Rotated{O,R}(obj, transf)
 
 struct Quaternion{T} <: RotationType{T}
   coords::SVector{4,T}
 end
 
+Quaternion(coords::AbstractArray) = Quaternion(SVector{length(coords),eltype(coords)}(coords))
 Quaternion(coords::Vararg{T}) where {T} = Quaternion(SVector{length(coords),T}(coords))
-
-rotate(x, q::Quaternion) = q * x # not implemented here
