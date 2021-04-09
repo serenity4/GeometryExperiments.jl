@@ -5,7 +5,7 @@ Scaling(vals::T...) where {T} = Scaling(Vec{length(vals),T}(vals))
 Scaling(vec::AbstractVector) where {Dim,T} = Scaling(Vec{length(vec),eltype(vec)}(vals))
 (s::Scaling)(p) = s.vec * p
 
-# type piracy; to added in Meshes
+# type piracy; to add in Meshes
 Base.:*(x::Vec{Dim,T}, y::Point{Dim,T}) where {Dim,T} = typeof(y)(x .* coordinates(y))
 
 inv(s::Scaling) = Scaling(inv.(s.vec))
