@@ -12,3 +12,5 @@ inv(s::Scaling) = Scaling(inv.(s.vec))
 
 const Scaled{O,Dim,T} = Transformed{O,Scaling{Dim,T}}
 Scaled(obj::O, transf::Scaling{Dim,T}) where {O,Dim,T} = Scaled{O,Dim,T}(obj, transf)
+
+Base.show(io::IO, s::Scaled{O,Dim,T}) where {O,Dim,T} = print(io, "Scaled{$O, $Dim, $T}($(s.obj), $(s.transf))")
