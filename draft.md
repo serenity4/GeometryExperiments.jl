@@ -1,14 +1,10 @@
-There is currently no handy way of working with geometry transforms such as rotation, translation and scaling. I'd like to present you [an approach](https://github.com/serenity4/GeometryExperiments.jl) to implement a clean and robust solution for Meshes.jl.
+There is currently no handy way of working with geometry transforms such as rotation, translation and scaling. I'd like to present you an approach to implement composable transforms for Meshes.jl. Geometric primitives are redesigned in the process, as many of them are naturally expressed in terms of transforms. Code implementing these ideas can be found on [this repo](https://github.com/serenity4/GeometryExperiments.jl).
 
-**Observations**
+**Context**
 
-Some objects in Meshes.jl embed transform information in their data structures. This is, for example, the case with:
-- `Plane`, `Sphere`, `Ball`, `Box`, `Line`, `Segment`, `Cylinder`, `Ray`: translation
-- `Ellipsoid`: translation + rotation
+Some objects in Meshes.jl embed transform information in their data structures. Notably, the origin of many objects are included in their types, providing information about a translation transform. Types include `Plane`, `Sphere`, `Ball`, `Box`, `Line`, `Segment`, `Cylinder`, and `Ray`.
 
-Additionally, neighborhoods are defined with `Ellipsoid` and `NormBall`, which seem to be a way to define metrics from ellipsoids and balls. For partitions, `BallPartition` yet again defines a ball structure with a metric, with the exact same fields as `NormBall`.
-
-To take the most obvious example, we see that there are multiple uses of a spherical/ball-like structure. `Sphere` describes a sphere in N-D space, `NormBall` and `BallPartition` describe a spherical metric, the difference between the latter two being for dispatch. Instead, I'd like to define a sphere-like object, and have the same type being passed around. `Sphere` is a translated sphere, `NormBall`/`BallPartition` use the implicit sphere representation ($x^2 + y^2 \leq R^2$ in two dimensions).
+Neighborhoods are defined with `Ellipsoid` and `NormBall`, two types that encode metrics attached to ellipsoids and balls. For partitions, `BallPartition` yet again defines a ball structure with a metric, with the exact same fields as `NormBall`. We see that there are multiple uses of a spherical/ball-like structure. `Sphere` describes a sphere in N-D space, `NormBall` and `BallPartition` describe a spherical metric (the difference between the latter two being for dispatch). Instead, I'd like to define a sphere-like object, and have the same type being passed around. `Sphere` is a translated sphere, `NormBall`/`BallPartition` use the implicit sphere representation ($x^2 + y^2 \leq R^2$ in two dimensions) with a particular metric.
 
 **The idea**
 
@@ -114,6 +110,12 @@ Note that `Box` is not a translated type as it is for `Meshes.Box`. This one can
 ```julia
 const Meshes.Box{Dim,T} = Translated{Box{Dim,T},Dim,T}
 ```
+
+**Summary**
+
+The proposal is about:
+- redefining current primitives to make them more composable
+- add transforms
 
 **Integration plans**
 
