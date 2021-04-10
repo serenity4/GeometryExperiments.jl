@@ -130,7 +130,7 @@ Pros:
 - Transforms:
   - are composable.
   - are explicit (no hidden transform within objects).
-  - may be merged arbitrarily: that needs yet to be implemented. You may explicitly use matrices to compose transforms in theory, however it is not straightforward. To include scaling you would need to work with homogeneous coordinates ((n+1) x (n+1) matrices in n-D). Geometric algebra can help with a more sparse representation (its transform objects are smaller than dense matrices), but no Julia library currently exist that is production ready.
+  - may be merged arbitrarily: that needs yet to be implemented. You may explicitly use matrices to compose transforms in theory, however it is not straightforward. To include translations you may need to work with homogeneous coordinates ((n+1) x (n+1) matrices in n-D). Geometric algebra can help with a more sparse representation (its transform objects are smaller than dense matrices), but no Julia library currently exist that is production ready.
 
 Cons:
 - Increased verbosity for some uses. For example, `Meshes.Box` must explicitly be a `Translated{Box}`. Type aliases may help if, for some primitives, their transformed version is often used.
