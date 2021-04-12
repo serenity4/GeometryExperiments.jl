@@ -19,7 +19,6 @@ export
     RotationType, Quaternion,
     Translation, Translated,
     ComposedTransform,
-    collapse, maybe_apply, can_apply, apply,
 
     # primitives
     NormedPrimitive,
