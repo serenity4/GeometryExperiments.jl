@@ -18,6 +18,11 @@ using Test
 
         @testset "Rotations" begin
         end
+
+        @testset "Composition" begin
+            comp = Translation(1., 2.) ∘ Scaling(1., 2.) ∘ Translation(-1., -2.)
+            @test all(GeometryExperiments.Leaves(comp) .== [Translation(1., 2.), Scaling(1., 2.), Translation(-1., -2.)])
+        end
     end
     @testset "Geometry" begin
         eval_sph(radius, p::Point) = sqrt(sum(coordinates(p).^2)) - radius
