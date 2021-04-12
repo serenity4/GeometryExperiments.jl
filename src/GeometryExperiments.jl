@@ -2,6 +2,7 @@ module GeometryExperiments
 
 using Meshes: Point, Vec, coordinates
 using StaticArrays: SVector
+using AbstractTrees
 import LinearAlgebra: norm
 import Base: in, inv
 
@@ -18,7 +19,7 @@ export
     RotationType, Quaternion,
     Translation, Translated,
     ComposedTransform,
-    can_apply, apply,
+    collapse, maybe_apply, can_apply, apply,
 
     # primitives
     NormedPrimitive,

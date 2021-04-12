@@ -8,9 +8,12 @@ Scaling(vec::AbstractVector) where {Dim,T} = Scaling(Vec{length(vec),eltype(vec)
 # type piracy; to add in Meshes
 Base.:*(x::Vec{Dim,T}, y::Point{Dim,T}) where {Dim,T} = typeof(y)(x .* coordinates(y))
 
+Base.:∘(t1::Scaling, t2::Scaling) = Scaling(t1.vec .* t2.vec)
+
 inv(s::Scaling) = Scaling(inv.(s.vec))
 
 const Scaled{O,Dim,T} = Transformed{O,Scaling{Dim,T}}
 Scaled(obj::O, transf::Scaling{Dim,T}) where {O,Dim,T} = Scaled{O,Dim,T}(obj, transf)
+Scaled(obj::Transformed, transf::Scaling) = Scaled(obj.obj, transf ∘ obj.transf)
 
 Base.show(io::IO, s::Scaled{O,Dim,T}) where {O,Dim,T} = print(io, "Scaled{$O, $Dim, $T}($(s.obj), $(s.transf))")

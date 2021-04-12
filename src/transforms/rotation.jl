@@ -17,6 +17,7 @@ inv(r::Rotation) = typeof(r)(-r.rot)
 
 const Rotated{O,R<:Rotation} = Transformed{O,R}
 Rotated(obj::O, transf::R) where {O,R} = Rotated{O,R}(obj, transf)
+Rotated(obj::Transformed, transf::Rotation) = Rotated(obj.obj, transf ∘ obj.transf)
 
 struct Quaternion{T} <: RotationType{T}
   coords::SVector{4,T}
