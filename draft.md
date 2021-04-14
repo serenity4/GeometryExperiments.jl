@@ -21,14 +21,14 @@ import LinearAlgebra: norm
 
 abstract type Primitive{T} end
 
-struct NormedPrimitive{N,T} <: Primitive{T}
+struct NormedPrimitive{P,T} <: Primitive{T}
   radius::T
-  NormedPrimitive{N}(radius::T) where {N,T} = new{N,T}(radius)
+  NormedPrimitive{P}(radius::T) where {P,T} = new{P,T}(radius)
 end
 
-norm(A, ::Type{<:NormedPrimitive{N}}) where {N} = norm(A, N)
+norm(p::Point, ::Type{<:NormedPrimitive{P}}) where {P} = norm(coordinates(p), P)
 
-(np::NormedPrimitive)(p) = norm(p, np) - np.radius
+(np::NormedPrimitive)(p) = norm(p, typeof(np)) - np.radius
 ```
 
 We can build hyperspheres and hypercubes with special parametrizations of `NormedPrimitive`, setting the norm order `N`:

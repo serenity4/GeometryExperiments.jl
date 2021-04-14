@@ -1,11 +1,11 @@
 abstract type Primitive{T} end
 
-struct NormedPrimitive{N,T} <: Primitive{T}
+struct NormedPrimitive{P,T} <: Primitive{T}
   radius::T
-  NormedPrimitive{N}(radius::T) where {N,T} = new{N,T}(radius)
+  NormedPrimitive{P}(radius::T) where {P,T} = new{P,T}(radius)
 end
 
-norm(p::Point, ::Type{<:NormedPrimitive{N}}) where {N} = norm(coordinates(p), N)
+norm(p::Point, ::Type{<:NormedPrimitive{P}}) where {P} = norm(coordinates(p), P)
 
 (np::NormedPrimitive)(p) = norm(p, typeof(np)) - np.radius
 
