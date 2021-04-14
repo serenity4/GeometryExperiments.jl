@@ -20,8 +20,14 @@ using Test
         end
 
         @testset "Composition" begin
-            comp = Translation(1., 2.) ∘ Scaling(1., 2.) ∘ Translation(-1., -2.)
-            @test all(transforms(comp) .== [Translation(1., 2.), Scaling(1., 2.), Translation(-1., -2.)])
+            @test Translation(2., 3.) ∘ Translation(1., 2.) == Translation(3., 5.)
+            @test Scaling(2., 3.) ∘ Scaling(1., 2.) == Scaling(2., 6.)
+
+            tr = Translation(1., 2.) ∘ Scaling(1., 2.) ∘ Translation(-1., -2.)
+            @test all(transforms(tr) .== [Translation(-1., -2.), Scaling(1., 2.), Translation(1., 2.)])
+
+            tr = Scaling(2., 3.) ∘ Translation(1., 2.)
+            @test tr(Point(0., 0.)) == Point(2., 6.)
         end
     end
     @testset "Geometry" begin

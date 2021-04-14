@@ -4,17 +4,17 @@ Base.broadcastable(tr::Transform) = Ref(tr)
 
 struct ComposedTransform{T,TR1<:Transform{T},TR2<:Transform{T}} <: Transform{T}
   """
-  Inner transform.
+  Outer transform.
   """
   t1::TR1
   """
-  Outer transform.
+  Inner transform.
   """
   t2::TR2
 end
-(t::ComposedTransform)(p) = t.t2(t.t1(p))
+(t::ComposedTransform)(p) = t.t1(t.t2(p))
 
-AbstractTrees.children(tr::ComposedTransform) = (tr.t1, tr.t2)
+AbstractTrees.children(tr::ComposedTransform) = (tr.t2, tr.t1)
 
 transforms(tr::ComposedTransform) = Leaves(tr)
 
