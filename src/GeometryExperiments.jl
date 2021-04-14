@@ -4,7 +4,7 @@ using Meshes: Point, Vec, coordinates
 using StaticArrays: SVector
 using AbstractTrees
 import LinearAlgebra: norm
-import Base: in, inv
+import Base: in, inv, ≈
 
 include("transforms.jl")
 include("primitives.jl")

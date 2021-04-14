@@ -7,6 +7,8 @@ Translation(vec::AbstractVector) where {Dim,T} = Translation(Vec{length(vec),elt
 
 Base.:∘(t1::Translation, t2::Translation) = Translation(t1.vec .+ t2.vec)
 
+(≈)(x::Translation, y::Translation) = x.vec ≈ y.vec
+
 inv(tr::Translation) = Translation(-tr.vec)
 
 const Translated{O,Dim,T} = Transformed{O,Translation{Dim,T}}

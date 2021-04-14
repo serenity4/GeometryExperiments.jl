@@ -32,6 +32,8 @@ struct Transformed{O,TR<:Transform}
 end
 (tr::Transformed)(p) = tr.obj(inv(tr.transf)(p))
 
+(≈)(x::Transformed, y::Transformed) = typeof(x) == typeof(y) && x.obj ≈ y.obj && x.transf ≈ y.transf
+
 include("transforms/scaling.jl")
 include("transforms/translation.jl")
 include("transforms/rotation.jl")

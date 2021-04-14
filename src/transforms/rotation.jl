@@ -13,6 +13,8 @@ struct Rotation{T,R<:RotationType{T}} <: Transform{T}
 end
 (r::Rotation)(p) = r.rot * p
 
+(≈)(x::Rotation, y::Rotation) = x.rot ≈ y.rot
+
 inv(r::Rotation) = typeof(r)(-r.rot)
 
 const Rotated{O,R<:Rotation} = Transformed{O,R}
