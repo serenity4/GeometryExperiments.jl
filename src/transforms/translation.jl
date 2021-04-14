@@ -11,4 +11,3 @@ inv(tr::Translation) = Translation(-tr.vec)
 
 const Translated{O,Dim,T} = Transformed{O,Translation{Dim,T}}
 Translated(obj::O, transf::Translation{Dim,T}) where {O,Dim,T} = Translated{O,Dim,T}(obj, transf)
-Translated(obj::Transformed, transf::Translation) = Translated(obj.obj, transf ∘ obj.transf)
