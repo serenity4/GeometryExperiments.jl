@@ -22,8 +22,8 @@ const Ellipsoid{Dim,T} = Scaled{HyperSphere{T},Dim,T}
 Ellipsoid(radius::T, transf::Scaling{Dim,T}) where {Dim,T} = Ellipsoid{Dim,T}(HyperSphere(radius), transf)
 
 function Ellipsoid(semiaxes)
-  n = norm(axes)
-  Ellipsoid(n, axes ./ n)
+  n = norm(semiaxes)
+  Ellipsoid(n, semiaxes ./ n)
 end
 
 Base.show(io::IO, elps::Ellipsoid{Dim,T}) where {Dim,T} = print(io, "Ellipsoid{$Dim, $T}($(elps.transf.vec .* elps.obj.radius))")
@@ -32,8 +32,5 @@ Base.show(io::IO, elps::Ellipsoid{Dim,T}) where {Dim,T} = print(io, "Ellipsoid{$
 const Box{Dim,T} = Scaled{HyperCube{T},Dim,T}
 Box(radius::T, transf::Scaling{Dim,T}) where {Dim,T} = Box{Dim,T}(HyperCube(radius), transf)
 
-can_apply(::Type{<:Scaling}, ::Type{<:NormedPrimitive}) = true
 apply(t::Scaling, s::NormedPrimitive) = typeof(s)(norm(s, t.vec) * s.radius)
-
-can_apply(::Type{<:Rotation}, ::Type{<:HyperSphere}) = true
 apply(t::Rotation, s::HyperSphere) = s
