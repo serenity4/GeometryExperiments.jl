@@ -119,7 +119,7 @@ const Meshes.Box{Dim,T} = Translated{Box{Dim,T},Dim,T}
 
 **Summary**
 
-The proposal is about:
+The proposal aims to:
 - add transforms.
 - redefine current primitives taking advantage of transforms.
 
@@ -130,16 +130,16 @@ Pros:
 - Transforms:
   - are composable.
   - are explicit (no hidden transform within objects).
-  - may be merged arbitrarily: that needs yet to be implemented. You may explicitly use matrices to compose transforms in theory, however it is not straightforward. To include translations you may need to work with homogeneous coordinates ((n+1) x (n+1) matrices in n-D). Geometric algebra can help with a more sparse representation (its transform objects are smaller than dense matrices), but no Julia library currently exist that is production ready.
+  - may be merged arbitrarily: that needs yet to be implemented. You may use matrices to compose transforms in theory, however it is not straightforward. To include translations you may need to work with homogeneous coordinates ((n+1) x (n+1) matrices in n-D). Geometric algebra can help with a more sparse representation (its transform objects are smaller than dense matrices), but no Julia library currently exist that is production ready.
 
 Cons:
-- Increased verbosity for some uses. For example, `Meshes.Box` must explicitly be a `Translated{Box}`. Type aliases may help if, for some primitives, their transformed version is often used.
+- Increased verbosity for some uses. For example, the current `Meshes.Box` must explicitly be a `Translated{Box}`. Type aliases may help if, for some primitives, their transformed version is often used.
 - Other? (please let me know)
 
 Areas of improvements (for further study, if/once this proposal is implemented):
 - Allow norms that are not p-norms for `NormedPrimitive` primitives.
 - Allow merge of transforms (cf above).
-- Reuse primitive types in other parts of Meshes.jl (thinking of neighborhoods, which may need a refactor).
+- Reuse primitive types in other parts of Meshes.jl (thinking of neighborhoods, which may benefit from a refactor).
 
 **Integration plans**
 
