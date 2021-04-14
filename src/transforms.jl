@@ -1,7 +1,5 @@
 abstract type Transform{T} end
 
-struct IdentityTransform{T} <: Transform{T} end
-
 Base.broadcastable(tr::Transform) = Ref(tr)
 
 struct ComposedTransform{T,TR1<:Transform{T},TR2<:Transform{T}} <: Transform{T}
@@ -16,15 +14,11 @@ struct ComposedTransform{T,TR1<:Transform{T},TR2<:Transform{T}} <: Transform{T}
 end
 (t::ComposedTransform)(p) = t.t2(t.t1(p))
 
-Base.broadcastable(tr::ComposedTransform) = tr
-Base.iterate(tr::ComposedTransform) = iterate(PreOrderDFS(tr))
-
 AbstractTrees.children(tr::ComposedTransform) = (tr.t1, tr.t2)
 
+transforms(tr::ComposedTransform) = Leaves(tr)
+
 Base.:∘(t1::Transform, t2::Transform) = ComposedTransform(t1, t2)
-Base.:∘(::IdentityTransform, t::Transform) = t
-Base.:∘(t::Transform, ::IdentityTransform) = t
-Base.:∘(::IT, ::IT) where {IT<:IdentityTransform} = IT()
 
 inv(t::ComposedTransform) = inv(t.t1) ∘ inv(t.t2)
 

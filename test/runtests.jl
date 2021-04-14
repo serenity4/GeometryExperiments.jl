@@ -21,7 +21,7 @@ using Test
 
         @testset "Composition" begin
             comp = Translation(1., 2.) ∘ Scaling(1., 2.) ∘ Translation(-1., -2.)
-            @test all(GeometryExperiments.Leaves(comp) .== [Translation(1., 2.), Scaling(1., 2.), Translation(-1., -2.)])
+            @test all(transforms(comp) .== [Translation(1., 2.), Scaling(1., 2.), Translation(-1., -2.)])
         end
     end
     @testset "Geometry" begin

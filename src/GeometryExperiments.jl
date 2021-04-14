@@ -19,6 +19,7 @@ export
     RotationType, Quaternion,
     Translation, Translated,
     ComposedTransform,
+    transforms,
 
     # primitives
     NormedPrimitive,
