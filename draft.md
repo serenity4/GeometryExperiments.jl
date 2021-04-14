@@ -115,7 +115,36 @@ const Meshes.Box{Dim,T} = Translated{Box{Dim,T},Dim,T}
 
 **Operations on transforms**
 
-<!-- TODO -->
+Transforms are composable. This is the very goal of the approach.
+
+The composition of two transforms is a transform:
+
+```julia
+struct ComposedTransform{T,TR1<:Transform{T},TR2<:Transform{T}} <: Transform{T}
+  """
+  Outer transform.
+  """
+  t1::TR1
+  """
+  Inner transform.
+  """
+  t2::TR2
+end
+(t::ComposedTransform)(p) = t.t1(t.t2(p))
+```
+
+With that, you can compose any transform defined above. Extending `Base.:∘`, we can have
+
+```julia
+tr = Scaling(2., 3.) ∘ Translation(1., 2.)
+tr(Point(0., 0.)) == Point(2., 6.) # true
+```
+
+Transforms of the same kind are directly merged:
+
+```julia
+Translation(2., 3.) ∘ Translation(1., 2.) == Translation(3., 5.) # true
+```
 
 **Summary**
 
