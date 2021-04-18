@@ -28,6 +28,9 @@ using Test
 
             tr = Scaling(2., 3.) ∘ Translation(1., 2.)
             @test tr(Point(0., 0.)) == Point(2., 6.)
+
+            p = Point(1., 2.)
+            @test (inv(tr) ∘ tr)(p) == p
         end
     end
     @testset "Geometry" begin

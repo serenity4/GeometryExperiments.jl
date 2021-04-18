@@ -20,7 +20,7 @@ transforms(tr::ComposedTransform) = Leaves(tr)
 
 Base.:∘(t1::Transform, t2::Transform) = ComposedTransform(t1, t2)
 
-inv(t::ComposedTransform) = inv(t.t1) ∘ inv(t.t2)
+inv(t::ComposedTransform) = inv(t.t2) ∘ inv(t.t1)
 
 struct Transformed{O,TR<:Transform}
   obj::O
