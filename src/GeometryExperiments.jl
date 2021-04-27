@@ -7,6 +7,7 @@ import LinearAlgebra: norm
 import Base: in, inv, ≈
 
 include("transforms.jl")
+include("projection.jl")
 include("primitives.jl")
 include("intersections.jl")
 include("coordinate_systems.jl")
@@ -21,11 +22,15 @@ export
     ComposedTransform,
     transforms,
 
+    # projections
+    Projection,
+
     # primitives
     NormedPrimitive,
     HyperSphere, HyperCube,
     Ellipsoid,
     Box,
+    Circle, Square,
 
     # coordinate systems
     CoordinateSystem,

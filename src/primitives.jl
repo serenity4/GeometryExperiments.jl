@@ -2,7 +2,8 @@ abstract type Primitive{T} end
 
 struct NormedPrimitive{P,T} <: Primitive{T}
   radius::T
-  NormedPrimitive{P}(radius::T) where {P,T} = new{P,T}(radius)
+  NormedPrimitive{P,T}(radius::T) where {P,T} = new{P,T}(radius)
+  NormedPrimitive{P}(radius::T) where {P,T} = NormedPrimitive{P,T}(radius)
 end
 
 norm(p::Point, ::Type{<:NormedPrimitive{P}}) where {P} = norm(coordinates(p), P)
@@ -42,3 +43,6 @@ Box(radius::T, transf::Scaling{Dim,T}) where {Dim,T} = Box{Dim,T}(HyperCube(radi
 
 apply(t::Scaling, s::NormedPrimitive) = typeof(s)(norm(s, t.vec) * s.radius)
 apply(t::Rotation, s::HyperSphere) = s
+
+const Circle{N,T} = Projection{2,HyperSphere{T}}
+const Square{N,T} = Projection{2,HyperCube{T}}

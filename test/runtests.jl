@@ -58,5 +58,18 @@ using Test
         @test Scaled(sph, Scaling(1., 2., 3.)) === elps
         @test elps ≈ Ellipsoid([0.2, 0.4, 0.6])
         @test p ∉ elps
+
+        @testset "Projections" begin
+            p = Projection{2}(HyperSphere(eval_sph(0., Point(0.2, 0.2))))
+            @test Point(0.1,0.1) ∈ p
+            @test Point(0.1,2.) ∉ p
+            @test Point(0.1,2.,0.) ∉ p
+            @test Point(0.1,0.1,0.) ∈ p
+            @test Point(0.1,0.1,0.1) ∉ p
+            @test p(Point(0.2,0.2)) == 0.
+            @test p(Point(0.2,0.2,0.)) == 0.
+            @test p(Point(0.2,0.2,0.5)) == 0.5
+            @test p(Point(0.2,0.2,0.5,0.3)) == eval_sph(0., Point(0.5,0.3))
+        end
     end
 end

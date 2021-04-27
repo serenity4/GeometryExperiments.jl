@@ -150,13 +150,10 @@ Translation(2., 3.) ∘ Translation(1., 2.) == Translation(3., 5.) # true
 
 Currently, there is no way to generate primitives like `Plane`, `Ray` or `Line`. This is because we are missing a description for projective geometry (which extends to infinity).
 
-Furthermore, embedding of `NormedPrimitive`s into higher dimensional spaces it not supported right now. For example, a circle cannot be embedded inside a 3D space. To do that, we are missing a projection operator, which behaves differently than transforms in that it is not invertible. Such operator could be very simple (e.g. it just drops all but the first two coordinates for a projection in 2D space), but it is yet unclear where it would fit.
-
 Coordinate systems are also not implemented. While the `NormedPrimitive`s allow for containment tests via evaluation, there is no way to wander inside nor on the boundary of such primitives.
 
 In summary, before moving on with this proposal, we need to:
 - integrate primitives that rely on projective geometry
-- allow the embedding of normed primitives into higher dimensional spaces
 - implement coordinate systems
 
 Only then will the current features of Meshes.jl for primitives be a subset of this proposal's.
