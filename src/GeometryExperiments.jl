@@ -1,10 +1,11 @@
 module GeometryExperiments
 
-using Meshes: Point, Vec, coordinates
 using StaticArrays: SVector
 using AbstractTrees
 import LinearAlgebra: norm
 import Base: in, inv, ≈
+
+const Point{Dim,T} = SVector{Dim,T}
 
 include("transforms.jl")
 include("projection.jl")
@@ -13,6 +14,9 @@ include("intersections.jl")
 include("coordinate_systems.jl")
 
 export
+
+    Point,
+
     # transforms
     Transform, Transformed,
     Scaling, Scaled,

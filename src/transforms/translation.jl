@@ -1,8 +1,8 @@
 struct Translation{Dim,T} <: Transform{T}
-  vec::Vec{Dim,T}
+  vec::Point{Dim,T}
 end
-Translation(vals::T...) where {T} = Translation(Vec{length(vals),T}(vals))
-Translation(vec::AbstractVector) where {Dim,T} = Translation(Vec{length(vec),eltype(vec)}(vals))
+Translation(vals::T...) where {T} = Translation(Point{length(vals),T}(vals))
+Translation(vec::AbstractVector) where {Dim,T} = Translation(Point{length(vec),eltype(vec)}(vals))
 (t::Translation)(p) = t.vec + p
 
 Base.:∘(t1::Translation, t2::Translation) = Translation(t1.vec .+ t2.vec)

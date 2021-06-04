@@ -6,7 +6,7 @@ struct NormedPrimitive{P,T} <: Primitive{T}
   NormedPrimitive{P}(radius::T) where {P,T} = NormedPrimitive{P,T}(radius)
 end
 
-norm(p::Point, ::Type{<:NormedPrimitive{P}}) where {P} = norm(coordinates(p), P)
+norm(p::Point, ::Type{<:NormedPrimitive{P}}) where {P} = norm(p, P)
 
 (np::NormedPrimitive)(p) = norm(p, typeof(np)) - np.radius
 
@@ -14,7 +14,7 @@ norm(p::Point, ::Type{<:NormedPrimitive{P}}) where {P} = norm(coordinates(p), P)
 
 const HyperSphere{T} = NormedPrimitive{2,T}
 
-norm(p::Point, ::Type{<:HyperSphere}) = hypot(coordinates(p)...)
+norm(p::Point, ::Type{<:HyperSphere}) = hypot(p...)
 
 const HyperCube{T} = NormedPrimitive{Inf,T}
 
@@ -28,7 +28,7 @@ const Ellipsoid{Dim,T} = Scaled{HyperSphere{T},Dim,T}
 Ellipsoid(radius::T, transf::Scaling{Dim,T}) where {Dim,T} = Ellipsoid{Dim,T}(HyperSphere(radius), transf)
 
 function Ellipsoid(semiaxes::AbstractVector)
-  radius = norm(Point(semiaxes), HyperSphere)
+  radius = norm(semiaxes, HyperSphere)
   Ellipsoid(radius, Scaling(semiaxes ./ radius))
 end
 Ellipsoid(semiaxes::Number...) = Ellipsoid(collect(semiaxes))

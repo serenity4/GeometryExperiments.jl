@@ -10,12 +10,11 @@ Projection{N}(obj::O) where {N,O} = Projection{N,O}(obj)
 (proj::Projection{N})(p::Point{N}) where {N} = proj.obj(p)
 
 function (proj::Projection{N})(p::Point{Dim,T}) where {N,Dim,T}
-    _p = coordinates(p)
     if Dim < N
-        pnew = Point(SVector{N,T}(i <= Dim ? _p[i] : zero(T) for i in 1:N))
+        pnew = Point{N,T}(i <= Dim ? p[i] : zero(T) for i in 1:N)
         proj.obj(pnew)
     else # Dim > N
-        pnew = Point(@views _p[N+1:Dim])
+        pnew = Point{Dim-N,T}(@views p[N+1:Dim])
         obj = proj.obj
         if obj isa Transformed{<:NormedPrimitive}
             ptype = typeof(obj.obj)

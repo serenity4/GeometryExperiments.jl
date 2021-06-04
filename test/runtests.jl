@@ -1,5 +1,4 @@
 using GeometryExperiments
-using GeometryExperiments: Point, coordinates
 using Test
 
 @testset "GeometryExperiments.jl" begin
@@ -34,7 +33,7 @@ using Test
         end
     end
     @testset "Geometry" begin
-        eval_sph(radius, p::Point) = hypot(coordinates(p)...) - radius
+        eval_sph(radius, p::Point) = hypot(p...) - radius
 
         p = Point(0., 1., 0.)
 
@@ -56,7 +55,7 @@ using Test
 
         elps = Ellipsoid(0.2, Scaling(1., 2., 3.))
         @test Scaled(sph, Scaling(1., 2., 3.)) === elps
-        @test elps ≈ Ellipsoid([0.2, 0.4, 0.6])
+        @test elps ≈ Ellipsoid(Point(0.2, 0.4, 0.6))
         @test p ∉ elps
 
         @testset "Projections" begin

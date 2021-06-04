@@ -26,7 +26,7 @@ struct NormedPrimitive{P,T} <: Primitive{T}
   NormedPrimitive{P}(radius::T) where {P,T} = new{P,T}(radius)
 end
 
-norm(p::Point, ::Type{<:NormedPrimitive{P}}) where {P} = norm(coordinates(p), P)
+norm(p::Point, ::Type{<:NormedPrimitive{P}}) where {P} = norm(p, P)
 
 (np::NormedPrimitive)(p) = norm(p, typeof(np)) - np.radius
 ```
@@ -56,18 +56,16 @@ end
 We need to implement a few `Transform`s to actually do something. Let's implement the `Scaling` and `Translation` transforms:
 
 ```julia
-using Meshes: Vec
+using StaticArrays: SVector
+const Point{Dim,T} = SVector{Dim,T}
 
 struct Scaling{Dim,T} <: Transform{T}
-  vec::Vec{Dim,T}
+  vec::Point{Dim,T}
 end
-(s::Scaling)(p) = s.vec * p
-
-# would be handy to have that in Meshes.jl
-Base.:*(x::Vec{Dim,T}, y::Point{Dim,T}) where {Dim,T} = typeof(y)(x .* coordinates(y))
+(s::Scaling)(p) = s.vec .* p
 
 struct Translation{Dim,T} <: Transform{T}
-  vec::Vec{Dim,T}
+  vec::Point{Dim,T}
 end
 (t::Translation)(p) = t.vec + p
 ```
