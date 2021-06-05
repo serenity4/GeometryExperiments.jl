@@ -11,6 +11,7 @@ include("transforms.jl")
 include("projection.jl")
 include("primitives.jl")
 include("intersections.jl")
+include("pointsets.jl")
 include("coordinate_systems.jl")
 
 export
@@ -35,6 +36,11 @@ export
     Ellipsoid,
     Box,
     Circle, Square,
+
+    # pointsets
+    PointSet,
+    centroid,
+    boundingelement,
 
     # coordinate systems
     CoordinateSystem,

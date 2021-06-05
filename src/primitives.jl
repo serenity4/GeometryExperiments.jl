@@ -44,5 +44,5 @@ Box(radius::T, transf::Scaling{Dim,T}) where {Dim,T} = Box{Dim,T}(HyperCube(radi
 apply(t::Scaling, s::NormedPrimitive) = typeof(s)(norm(s, t.vec) * s.radius)
 apply(t::Rotation, s::HyperSphere) = s
 
-const Circle{N,T} = Projection{2,HyperSphere{T}}
-const Square{N,T} = Projection{2,HyperCube{T}}
+const Circle{T} = Projection{2,HyperSphere{T}}
+const Square{T} = Projection{2,HyperCube{T}}

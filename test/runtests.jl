@@ -71,4 +71,17 @@ using Test
             @test p(Point(0.2,0.2,0.5,0.3)) == eval_sph(0., Point(0.5,0.3))
         end
     end
+
+    @testset "Point sets" begin
+        set = PointSet([Point(0., 0.), Point(1., 0.), Point(0., 1.), Point(1., 1.)])
+        set2 = PointSet([Point(0., 0.5), Point(0.5, 0.), Point(0.5, 1.), Point(1., 0.5)])
+        @test boundingelement(set) == Translated(Scaled(HyperCube(1.), Scaling(0.5, 0.5)), Translation(0.5, 0.5))
+        @test boundingelement(set) == boundingelement(set2)
+
+        set = PointSet([Point(-1., -1.), Point(1., -1.), Point(-1., 1.), Point(1., 1.)])
+        @test boundingelement(set) == Translated(Scaled(HyperCube(1.), Scaling(1., 1.)), Translation(0., 0.))
+
+        set = PointSet([Point(0., 0., 0.), Point(1., 0., 0.), Point(0., 1., 0.), Point(0., 0., 1.), Point(1., 1., 0.), Point(1., 0., 1.), Point(0., 1., 1.), Point(1., 1., 1.)])
+        @test boundingelement(set) == Translated(Scaled(HyperCube(1.), Scaling(0.5, 0.5, 0.5)), Translation(0.5, 0.5, 0.5))
+    end
 end

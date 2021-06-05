@@ -1,7 +1,7 @@
-abstract type CoordinateSystem{T} end
+abstract type CoordinateSystem end
 
 (tr::Transformed{<:CoordinateSystem})(p) = tr.obj(tr.transf(p))
 
-struct Cartesian{T} <: CoordinateSystem{T} end
+struct Cartesian <: CoordinateSystem end
 
 (c::Cartesian)(p) = p
