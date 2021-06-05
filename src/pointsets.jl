@@ -10,8 +10,6 @@ end
 function boundingelement(set::PointSet{Dim}) where {Dim}
     c = centroid(set)
     loc = Translation(c)
-    # primitive = Translated(HyperCube(0.), loc)
-    # dist, idx = findmin(map(primitive, set.points))
     coords = map(1:Dim) do i
         maximum(getindex.(set.points, i))
     end
