@@ -12,6 +12,7 @@ include("projection.jl")
 include("primitives.jl")
 include("intersections.jl")
 include("pointsets.jl")
+include("connectivity.jl")
 include("coordinate_systems.jl")
 
 export
