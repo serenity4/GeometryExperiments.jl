@@ -3,7 +3,7 @@ module GeometryExperiments
 using StaticArrays: SVector
 using AbstractTrees
 import LinearAlgebra: norm
-import Base: in, inv, ≈
+import Base: in, inv, ≈, ==
 
 const Point{Dim,T} = SVector{Dim,T}
 

@@ -1,6 +1,9 @@
 using GeometryExperiments
 using Test
 
+const P2 = Point{2,Float64}
+const P3 = Point{3,Float64}
+
 @testset "GeometryExperiments.jl" begin
     @testset "Transforms" begin
         @testset "Translations" begin
@@ -83,5 +86,8 @@ using Test
 
         set = PointSet([Point(0., 0., 0.), Point(1., 0., 0.), Point(0., 1., 0.), Point(0., 0., 1.), Point(1., 1., 0.), Point(1., 0., 1.), Point(0., 1., 1.), Point(1., 1., 1.)])
         @test boundingelement(set) == Translated(Scaled(HyperCube(1.), Scaling(0.5, 0.5, 0.5)), Translation(0.5, 0.5, 0.5))
+
+        @test PointSet(HyperCube, P2) == PointSet(P2[(-1,-1),(1,-1),(-1,1),(1,1)])
+        @test PointSet(HyperCube, P3) == PointSet(P3[(-1,-1,-1),(1,-1,-1),(-1,1,-1),(1,1,-1),(-1,-1,1),(1,-1,1),(-1,1,1),(1,1,1)])
     end
 end
