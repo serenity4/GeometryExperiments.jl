@@ -12,7 +12,7 @@ struct ComposedTransform{T,TR1<:Transform{T},TR2<:Transform{T}} <: Transform{T}
   """
   t2::TR2
 end
-(t::ComposedTransform)(p) = t.t1(t.t2(p))
+(t::ComposedTransform)(p::AbstractVector) = t.t1(t.t2(p))
 
 AbstractTrees.children(tr::ComposedTransform) = (tr.t1, tr.t2)
 

@@ -4,6 +4,8 @@ end
 
 (==)(x::PointSet, y::PointSet) = x.points == y.points
 
+(transf::Transform)(set::PointSet) = PointSet(map(transf, set.points))
+
 function centroid(set::PointSet)
     points = set.points
     sum(points) / length(points)
@@ -18,15 +20,10 @@ function boundingelement(set::PointSet{Dim}) where {Dim}
     Translated(Scaled(HyperCube(1.), scale), Translation(c))
 end
 
-@generated function PointSet(obj::Type{HyperCube}, P::Type{Point{Dim,T}}) where {Dim,T}
+@generated function PointSet(::Type{HyperCube}, P::Type{Point{Dim,T}}) where {Dim,T}
     idxs = CartesianIndices(ntuple(i -> -1:2:1, Dim))
     tuples = getproperty.(idxs, :I)
     :(PointSet(SVector{$(2^Dim),Point{$Dim,$T}}($(tuples...))))
 end
 
 PointSet(obj::HyperCube, P) = PointSet(typeof(obj), P)
-
-function PointSet(transf::Transformed{HyperCube,<:Transform{T}}, ::Val{Dim}) where {Dim,T}
-    set = PointSet(HyperCube, Point{Dim,T})
-    Transformed(set, transf.transf)
-end

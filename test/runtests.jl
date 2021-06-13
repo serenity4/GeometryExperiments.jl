@@ -83,6 +83,9 @@ const P3 = Point{3,Float64}
 
         set = PointSet([Point(-1., -1.), Point(1., -1.), Point(-1., 1.), Point(1., 1.)])
         @test boundingelement(set) == Translated(Scaled(HyperCube(1.), Scaling(1., 1.)), Translation(0., 0.))
+        @test Scaling(1., 1.)(set) == set
+        @test Translation(0., 0.)(set) == set
+        (Scaling(1., 1.) ∘ Translation(0., 0.))(set) == set
 
         set = PointSet([Point(0., 0., 0.), Point(1., 0., 0.), Point(0., 1., 0.), Point(0., 0., 1.), Point(1., 1., 0.), Point(1., 0., 1.), Point(0., 1., 1.), Point(1., 1., 1.)])
         @test boundingelement(set) == Translated(Scaled(HyperCube(1.), Scaling(0.5, 0.5, 0.5)), Translation(0.5, 0.5, 0.5))

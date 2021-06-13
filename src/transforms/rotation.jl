@@ -11,7 +11,7 @@ Rotation around the origin implemented from a rotation type `R`.
 struct Rotation{T,R<:RotationType{T}} <: Transform{T}
   rot::R
 end
-(r::Rotation)(p) = r.rot * p
+(r::Rotation)(p::AbstractVector) = r.rot * p
 
 (≈)(x::Rotation, y::Rotation) = x.rot ≈ y.rot
 
