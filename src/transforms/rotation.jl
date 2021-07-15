@@ -8,7 +8,7 @@ Rotation around the origin implemented from a rotation type `R`.
 `rotate(x, r::R) where {R<:RotationType}`. In 3D, this can be
 `Quaternion` or `Euler`, for example.
 """
-struct Rotation{T,R<:RotationType{T}} <: Transform{T}
+struct Rotation{T,R<:RotationType{T}} <: Transform
   rot::R
 end
 (r::Rotation)(p::AbstractVector) = r.rot * p

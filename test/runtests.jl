@@ -93,4 +93,28 @@ const P3 = Point{3,Float64}
         @test PointSet(HyperCube, P2) == PointSet(P2[(-1,-1),(1,-1),(-1,1),(1,1)])
         @test PointSet(HyperCube, P3) == PointSet(P3[(-1,-1,-1),(1,-1,-1),(-1,1,-1),(1,1,-1),(-1,-1,1),(1,-1,1),(-1,1,1),(1,1,1)])
     end
+
+    @testset "Curves" begin
+        @testset "Bezier curves" begin
+            T = Float64
+            b = BezierCurve()
+            points = P2[(0,0),(0.5,1),(1,0)]
+            @test b(T(0), points) == P2(0,0)
+            @test b(T(1), points) == P2(1,0)
+            @test b(T(0.5), points) == P2(0.5,0.5)
+            @test b(T(0.5), points) == P2(0.5,0.5)
+            @test_throws DomainError(T(-0.1), "b(t) is not defined for t outside [0, 1].") b(T(-0.1), points)
+            @test_throws DomainError(T(1.2), "b(t) is not defined for t outside [0, 1].") b(T(1.2), points)
+        end
+
+        @testset "Patches" begin
+            p = Patch(BezierCurve(), 3)
+            points = P2[(0,0),(0.5,1),(1,0), (1.5,-1),(2,0)]
+            @test p(0, points) == P2(0,0)
+            @test p(0.25, points) == P2(0.5, 0.5)
+            @test p(0.5, points) == P2(1,0)
+            @test p(0.75, points) == P2(1.5, -0.5)
+            @test p(1, points) == P2(2,0)
+        end
+    end
 end

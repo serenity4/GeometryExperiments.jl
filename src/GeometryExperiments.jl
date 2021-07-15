@@ -15,6 +15,9 @@ include("pointsets.jl")
 include("connectivity.jl")
 include("coordinate_systems.jl")
 
+include("curves.jl")
+include("bezier.jl")
+
 export
 
     Point,
@@ -45,7 +48,12 @@ export
 
     # coordinate systems
     CoordinateSystem,
-    Cartesian
+    Cartesian,
+
+    # curves
+    Curve,
+    BezierCurve,
+    Patch
 
 
 end # module

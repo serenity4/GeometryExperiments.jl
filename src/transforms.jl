@@ -1,8 +1,8 @@
-abstract type Transform{T} end
+abstract type Transform end
 
 Base.broadcastable(tr::Transform) = Ref(tr)
 
-struct ComposedTransform{T,TR1<:Transform{T},TR2<:Transform{T}} <: Transform{T}
+struct ComposedTransform{TR1<:Transform,TR2<:Transform} <: Transform
   """
   Outer transform.
   """

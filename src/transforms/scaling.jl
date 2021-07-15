@@ -1,4 +1,4 @@
-struct Scaling{Dim,T} <: Transform{T}
+struct Scaling{Dim,T} <: Transform
   vec::Point{Dim,T}
 end
 Scaling(vals::T...) where {T} = Scaling(Point{length(vals),T}(vals))

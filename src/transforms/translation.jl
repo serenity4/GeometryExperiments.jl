@@ -1,4 +1,4 @@
-struct Translation{Dim,T} <: Transform{T}
+struct Translation{Dim,T} <: Transform
   vec::Point{Dim,T}
 end
 Translation(vals::T...) where {T} = Translation(Point{length(vals),T}(vals))
