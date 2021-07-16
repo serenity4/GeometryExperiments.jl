@@ -27,3 +27,10 @@ end
 end
 
 PointSet(obj::HyperCube, P) = PointSet(typeof(obj), P)
+
+function sort_nearest(set::PointSet, point, dist=HyperSphere(0.))
+    f = Translated(dist, Translation(point))
+    dists = f.(set.points)
+    indices = sortperm(dists)
+    set.points[indices]
+end

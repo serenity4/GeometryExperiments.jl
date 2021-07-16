@@ -45,6 +45,7 @@ export
     PointSet,
     centroid,
     boundingelement,
+    sort_nearest,
 
     # coordinate systems
     CoordinateSystem,
@@ -53,7 +54,11 @@ export
     # curves
     Curve,
     BezierCurve,
-    Patch
+    BezierEvalMethod,
+    Horner,
+    Patch,
+    startindex,
+    curve_points
 
 
 end # module

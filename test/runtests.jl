@@ -92,6 +92,11 @@ const P3 = Point{3,Float64}
 
         @test PointSet(HyperCube, P2) == PointSet(P2[(-1,-1),(1,-1),(-1,1),(1,1)])
         @test PointSet(HyperCube, P3) == PointSet(P3[(-1,-1,-1),(1,-1,-1),(-1,1,-1),(1,1,-1),(-1,-1,1),(1,-1,1),(-1,1,1),(1,1,1)])
+
+        @testset "Nearest" begin
+            set = PointSet([Point(0., 1.), Point(0.5, 0.5), Point(1., 0)])
+            @test sort_nearest(set, Point(1., 0.75)) == set.points[[2, 3, 1]]
+        end
     end
 
     @testset "Curves" begin
@@ -115,6 +120,9 @@ const P3 = Point{3,Float64}
             @test p(0.5, points) == P2(1,0)
             @test p(0.75, points) == P2(1.5, -0.5)
             @test p(1, points) == P2(2,0)
+            @test split(points, p) == [@view(points[1:3]), @view(points[3:5])]
+            @test curve_points(p, points) == @view points[1:3]
+            @test curve_points(p, points, 1) == @view points[3:5]
         end
     end
 end
