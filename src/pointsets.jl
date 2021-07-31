@@ -20,17 +20,21 @@ function boundingelement(set::PointSet{Dim}) where {Dim}
     Translated(Scaled(HyperCube(1.), scale), Translation(c))
 end
 
-@generated function PointSet(::Type{HyperCube}, P::Type{Point{Dim,T}}) where {Dim,T}
+@generated function PointSet(::Type{<:HyperCube}, P::Type{Point{Dim,T}}) where {Dim,T}
     idxs = CartesianIndices(ntuple(i -> -1:2:1, Dim))
     tuples = getproperty.(idxs, :I)
     :(PointSet(SVector{$(2^Dim),Point{$Dim,$T}}($(tuples...))))
 end
 
-PointSet(obj::HyperCube, P) = PointSet(typeof(obj), P)
+PointSet(obj::HyperCube, P) = UniformScaling(obj.radius)(PointSet(typeof(obj), P))
 
 function sort_nearest(set::PointSet, point, dist=HyperSphere(0.))
     f = Translated(dist, Translation(point))
     dists = f.(set.points)
     indices = sortperm(dists)
     set.points[indices]
+end
+
+function Base.show(io::IO, set::PointSet{Dim,T}) where {Dim,T}
+    print(io, "PointSet{$Dim,$T}(", join(set.points, ", "), ')')
 end

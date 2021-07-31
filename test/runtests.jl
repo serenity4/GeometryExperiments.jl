@@ -7,15 +7,21 @@ const P3 = Point{3,Float64}
 @testset "GeometryExperiments.jl" begin
     @testset "Transforms" begin
         @testset "Translations" begin
-            tr = Translation(1., 2.)
+            tr = Translation(1., 3.)
             tr_inv = inv(tr)
             @test tr ∘ tr_inv == Translation(0., 0.)
+            @test tr(Point(1., 2.)) == Point(2., 5.)
         end
 
         @testset "Scalings" begin
             sc = Scaling(1., 2.)
             sc_inv = inv(sc)
             @test sc ∘ sc_inv == Scaling(1., 1.)
+            @test sc(Point(1., 2.)) == Point(1., 4.)
+
+            us = UniformScaling(2.)
+            @test us ∘ inv(us) == UniformScaling(1.)
+            @test us(Point(1., 2.)) == Point(2., 4.)
         end
 
         @testset "Rotations" begin
@@ -35,6 +41,7 @@ const P3 = Point{3,Float64}
             @test (inv(tr) ∘ tr)(p) == p
         end
     end
+
     @testset "Geometry" begin
         eval_sph(radius, p::Point) = hypot(p...) - radius
 
@@ -91,6 +98,7 @@ const P3 = Point{3,Float64}
         @test boundingelement(set) == Translated(Scaled(HyperCube(1.), Scaling(0.5, 0.5, 0.5)), Translation(0.5, 0.5, 0.5))
 
         @test PointSet(HyperCube, P2) == PointSet(P2[(-1,-1),(1,-1),(-1,1),(1,1)])
+        @test PointSet(HyperCube(0.5), P2) == PointSet(P2[(-0.5,-0.5),(0.5,-0.5),(-0.5,0.5),(0.5,0.5)])
         @test PointSet(HyperCube, P3) == PointSet(P3[(-1,-1,-1),(1,-1,-1),(-1,1,-1),(1,1,-1),(-1,-1,1),(1,-1,1),(-1,1,1),(1,1,1)])
 
         @testset "Nearest" begin

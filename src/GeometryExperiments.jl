@@ -24,7 +24,7 @@ export
 
     # transforms
     Transform, Transformed,
-    Scaling, Scaled,
+    Scaling, Scaled, UniformScaling,
     Rotation, Rotated,
     RotationType, Quaternion,
     Translation, Translated,
