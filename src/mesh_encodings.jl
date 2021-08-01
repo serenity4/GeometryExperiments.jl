@@ -1,15 +1,39 @@
-abstract type TriangleMeshEncoding end
+abstract type IndexEncoding end
 
-struct TriangleStrip{I} <: TriangleMeshEncoding
+abstract type TopologyClass end
+
+struct Line <: TopologyClass end
+struct Triangle <: TopologyClass end
+
+parametric_dimension(::Type{Line}) = 2
+parametric_dimension(::Type{Triangle}) = 3
+
+struct Strip{C<:TopologyClass,I} <: IndexEncoding
     indices::I
 end
 
-struct TriangleFan{I} <: TriangleMeshEncoding
+Strip{C}(indices) where {C} = Strip{C,typeof(indices)}(indices)
+
+const LineStrip = Strip{Line}
+const TriangleStrip = Strip{Triangle}
+
+struct Fan{C<:TopologyClass,I} <: IndexEncoding
     indices::I
 end
 
-@auto_hash_equals struct TriangleList <: TriangleMeshEncoding
-    indices::Vector{SVector{3,Int}}
+Fan{C}(indices) where {C} = Fan{C,typeof(indices)}(indices)
+
+const TriangleFan = Fan{Triangle}
+
+@auto_hash_equals struct IndexList{C<:TopologyClass,Dim} <: IndexEncoding
+    indices::Vector{SVector{Dim,Int}}
+end
+
+const LineList = IndexList{Line}
+const TriangleList = IndexList{Triangle}
+
+function IndexList{C}(indices) where {C<:TopologyClass}
+    IndexList{C,parametric_dimension(C)}(indices)
 end
 
 function TriangleList(encoding::TriangleFan)
@@ -27,4 +51,9 @@ function TriangleList(encoding::TriangleStrip)
         SVector(indices[i], indices[i + 1 + (i - 1) % 2], indices[i + 2 - (i - 1) % 2])
     end
     TriangleList(list)
+end
+
+function LineList(encoding::LineStrip)
+    indices = encoding.indices
+    LineList([SVector(indices[i], indices[i+1]) for i in 1:length(indices) - 1])
 end

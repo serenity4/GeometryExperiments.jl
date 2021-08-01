@@ -63,8 +63,9 @@ export
     curve_points,
 
     # mesh encodings
-    TriangleMeshEncoding,
-    TriangleStrip, TriangleFan, TriangleList
+    IndexEncoding,
+    TriangleStrip, TriangleFan, TriangleList,
+    LineStrip, LineList
 
 
 end # module

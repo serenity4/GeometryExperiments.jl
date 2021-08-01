@@ -142,5 +142,8 @@ const P3 = Point{3,Float64}
         fan = TriangleFan(1:5)
         list = TriangleList([(1, 2, 3), (1, 3, 4), (1, 4, 5)])
         @test TriangleList(fan) == list
+
+        strip = LineStrip(1:5)
+        @test LineList(strip) == LineList([(1, 2), (2, 3), (3, 4), (4, 5)])
     end
 end
