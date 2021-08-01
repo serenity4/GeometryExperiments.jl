@@ -133,4 +133,14 @@ const P3 = Point{3,Float64}
             @test curve_points(p, points, 1) == @view points[3:5]
         end
     end
+
+    @testset "Mesh encodings" begin
+        strip = TriangleStrip(1:5)
+        list = TriangleList([(1, 2, 3), (2, 4, 3), (3, 4, 5)])
+        @test TriangleList(strip) == list
+
+        fan = TriangleFan(1:5)
+        list = TriangleList([(1, 2, 3), (1, 3, 4), (1, 4, 5)])
+        @test TriangleList(fan) == list
+    end
 end
