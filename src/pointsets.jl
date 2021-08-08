@@ -27,6 +27,7 @@ end
 end
 
 PointSet(obj::HyperCube, P) = UniformScaling(obj.radius)(PointSet(typeof(obj), P))
+PointSet(obj::Transformed, P) = UniformScaling(obj.radius)(obj.transf(PointSet(obj.obj, P)))
 
 function sort_nearest(set::PointSet, point, dist=HyperSphere(0.))
     f = Translated(dist, Translation(point))
