@@ -1,6 +1,6 @@
 module GeometryExperiments
 
-using StaticArrays: SVector
+using StaticArrays: SVector, @SVector
 using AbstractTrees
 import LinearAlgebra: norm
 import Base: in, inv, ≈, ==
@@ -31,6 +31,7 @@ export
     RotationType, Quaternion,
     Translation, Translated,
     ComposedTransform,
+    BoxTransform,
     transforms,
 
     # projections
@@ -42,6 +43,7 @@ export
     Ellipsoid,
     Box,
     Circle, Square,
+    origin, radius,
 
     # pointsets
     PointSet,

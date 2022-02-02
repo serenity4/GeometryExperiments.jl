@@ -4,6 +4,7 @@ end
 Translation(vals::T...) where {T} = Translation(Point{length(vals),T}(vals))
 Translation(vec::AbstractVector) where {Dim,T} = Translation(Point{length(vec),eltype(vec)}(vals))
 (t::Translation)(p::AbstractVector) = t.vec + p
+(t::Translation{Dim})(x::Number) where {Dim} = t(@SVector fill(x, Dim))
 
 Base.:∘(t1::Translation, t2::Translation) = Translation(t1.vec .+ t2.vec)
 

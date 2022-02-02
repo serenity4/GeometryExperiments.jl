@@ -1,5 +1,5 @@
-in(p::Point, obj::NormedPrimitive) = obj(p) ≤ 0
-in(p::Point, tr::Transformed) = tr(p) ≤ 0
+in(p, obj::NormedPrimitive) = obj(p) ≤ 0
+in(p, tr::Transformed) = tr(p) ≤ 0
 in(p::Point{N}, proj::Projection{N}) where {N} = p in proj.obj
 
 function in(p::Point{Dim,T}, proj::Projection{N}) where {Dim,T,N}

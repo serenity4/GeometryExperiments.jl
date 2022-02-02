@@ -2,19 +2,20 @@ struct PointSet{Dim,T,V<:AbstractVector{Point{Dim,T}}}
     points::V
 end
 
+Base.length(set::PointSet) = length(set.points)
+Base.iterate(set::PointSet) = iterate(set.points)
+Base.iterate(set::PointSet, state) = iterate(set.points, state)
+
 (==)(x::PointSet, y::PointSet) = x.points == y.points
 
-(transf::Transform)(set::PointSet) = PointSet(map(transf, set.points))
+(transf::Transform)(set::PointSet) = PointSet(map(transf, set))
 
-function centroid(set::PointSet)
-    points = set.points
-    sum(points) / length(points)
-end
+centroid(set::PointSet) = sum(set) / length(set)
 
 function boundingelement(set::PointSet{Dim}) where {Dim}
     c = centroid(set)
     coords = map(1:Dim) do i
-        maximum(getindex.(set.points, i))
+        maximum(getindex.(set, i))
     end
     scale = Scaling(coords - c)
     Translated(Scaled(HyperCube(1.), scale), Translation(c))
@@ -26,16 +27,16 @@ end
     :(PointSet(SVector{$(2^Dim),Point{$Dim,$T}}($(tuples...))))
 end
 
-PointSet(obj::HyperCube, P) = UniformScaling(obj.radius)(PointSet(typeof(obj), P))
-PointSet(obj::Transformed, P) = UniformScaling(obj.radius)(obj.transf(PointSet(obj.obj, P)))
+PointSet(obj::HyperCube, P) = UniformScaling(radius(obj))(PointSet(typeof(obj), P))
+PointSet(obj::Transformed, P) = obj.transf(PointSet(obj.obj, P))
 
 function sort_nearest(set::PointSet, point, dist=HyperSphere(0.))
     f = Translated(dist, Translation(point))
-    dists = f.(set.points)
+    dists = f.(set)
     indices = sortperm(dists)
     set.points[indices]
 end
 
 function Base.show(io::IO, set::PointSet{Dim,T}) where {Dim,T}
-    print(io, "PointSet{$Dim,$T}(", join(set.points, ", "), ')')
+    print(io, "PointSet{$Dim,$T}(", join(set, ", "), ')')
 end

@@ -4,6 +4,7 @@ end
 Scaling(vals::T...) where {T} = Scaling(Point{length(vals),T}(vals))
 Scaling(vec::AbstractVector) where {Dim,T} = Scaling(Point{length(vec),eltype(vec)}(vec))
 (s::Scaling)(p::AbstractVector) = s.vec .* p
+(s::Scaling{Dim})(x::Number) where {Dim} = s(@SVector fill(x, Dim))
 
 Base.:∘(t1::Scaling, t2::Scaling) = Scaling(t1.vec .* t2.vec)
 

@@ -6,7 +6,12 @@ struct NormedPrimitive{P,T} <: Primitive{T}
   NormedPrimitive{P}(radius::T) where {P,T} = NormedPrimitive{P,T}(radius)
 end
 
+Base.eltype(::NormedPrimitive{P,T}) where {P,T} = T
 norm(p::Point, ::Type{<:NormedPrimitive{P}}) where {P} = norm(p, P)
+origin(np::NormedPrimitive) = zero(eltype(np))
+radius(tr::NormedPrimitive) = tr.radius
+origin(tr::Transformed{<:NormedPrimitive}) = tr.transf(origin(tr.obj))
+radius(tr::Transformed{<:NormedPrimitive}) = tr.transf(radius(tr.obj))
 
 (np::NormedPrimitive)(p) = norm(p, typeof(np)) - np.radius
 
@@ -41,8 +46,16 @@ Base.show(io::IO, elps::Ellipsoid{Dim,T}) where {Dim,T} = print(io, "Ellipsoid{$
 const Box{Dim,T} = Scaled{HyperCube{T},Dim,T}
 Box(radius::T, transf::Scaling{Dim,T}) where {Dim,T} = Box{Dim,T}(HyperCube(radius), transf)
 
-apply(t::Scaling, s::NormedPrimitive) = typeof(s)(norm(s, t.vec) * s.radius)
-apply(t::Rotation, s::HyperSphere) = s
-
 const Circle{T} = Projection{2,HyperSphere{T}}
 const Square{T} = Projection{2,HyperCube{T}}
+
+struct BoxTransform{F,T} <: Transform
+  from::F
+  to::T
+end
+
+function (tr::BoxTransform)(p)
+  ratio = Scaling(Translation(-origin(tr.to))(radius(tr.to))) ∘ inv(Scaling(Translation(-origin(tr.from))(radius(tr.from))))
+  transf = Translation(origin(tr.to)) ∘ ratio ∘ Translation(-origin(tr.from))
+  transf(p)
+end
