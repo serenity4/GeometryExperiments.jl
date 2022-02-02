@@ -20,56 +20,56 @@ include("bezier.jl")
 include("mesh_encodings.jl")
 
 export
-    Point,
+  Point,
 
-    # transforms
-    Transform, Transformed,
-    Scaling, Scaled, UniformScaling,
-    Rotation, Rotated,
-    RotationType, Quaternion,
-    Translation, Translated,
-    ComposedTransform,
-    BoxTransform,
-    transforms,
+  # transforms
+  Transform, Transformed,
+  Scaling, Scaled, UniformScaling,
+  Rotation, Rotated,
+  RotationType, Quaternion,
+  Translation, Translated,
+  ComposedTransform,
+  BoxTransform,
+  transforms,
 
-    # projections
-    Projection,
+  # projections
+  Projection,
 
-    # primitives
-    NormedPrimitive,
-    HyperSphere, HyperCube,
-    Ellipsoid,
-    Box,
-    Circle, Square,
-    origin, radius,
+  # primitives
+  NormedPrimitive,
+  HyperSphere, HyperCube,
+  Ellipsoid,
+  Box,
+  Circle, Square,
+  origin, radius,
 
-    # pointsets
-    PointSet,
-    centroid,
-    boundingelement,
-    sort_nearest,
+  # pointsets
+  PointSet,
+  centroid,
+  boundingelement,
+  sort_nearest,
 
-    # coordinate systems
-    CoordinateSystem,
-    Cartesian,
+  # coordinate systems
+  CoordinateSystem,
+  Cartesian,
 
-    # curves
-    Curve,
-    BezierCurve,
-    BezierEvalMethod,
-    Horner,
-    Patch,
-    startindex,
-    curve_points,
+  # curves
+  Curve,
+  BezierCurve,
+  BezierEvalMethod,
+  Horner,
+  Patch,
+  startindex,
+  curve_points,
 
-    # mesh encodings
-    TopologyClass,
-    Line, Triangle,
-    IndexEncoding,
-    Strip, Fan, IndexList,
-    TriangleStrip, TriangleFan, TriangleList,
-    LineStrip, LineList,
-    MeshEncoding, MeshVertexEncoding
+  # mesh encodings
+  TopologyClass,
+  Line, Triangle,
+  IndexEncoding,
+  Strip, Fan, IndexList,
+  TriangleStrip, TriangleFan, TriangleList,
+  LineStrip, LineList,
+  MeshEncoding, MeshVertexEncoding
 
 
 end # module
