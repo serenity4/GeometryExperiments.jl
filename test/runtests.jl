@@ -33,8 +33,9 @@ const P3 = Point{3,Float64}
       @test Translation(2.0, 3.0) ∘ Translation(1.0, 2.0) == Translation(3.0, 5.0)
       @test Scaling(2.0, 3.0) ∘ Scaling(1.0, 2.0) == Scaling(2.0, 6.0)
 
-      tr = Translation(1.0, 2.0) ∘ Scaling(1.0, 2.0) ∘ Translation(-1.0, -2.0)
-      @test all(transforms(tr) .== [Translation(1.0, 2.0), Scaling(1.0, 2.0), Translation(-1.0, -2.0)])
+      trs = [Translation(1.0, 2.0), Scaling(1.0, 2.0), Translation(-1.0, -2.0)]
+      tr = ∘(trs...)
+      @test all(transforms(tr) .== trs)
 
       tr = Scaling(2.0, 3.0) ∘ Translation(1.0, 2.0)
       @test tr(Point(0.0, 0.0)) == Point(2.0, 6.0)
@@ -65,7 +66,7 @@ const P3 = Point{3,Float64}
 
     sph = HyperSphere(0.2)
     @test p ∉ sph
-    @test zero(Point{3,Float64}) ∈ sph
+    @test zero(P3) ∈ sph
     @test Translated(sph, Translation(0.0, 0.0, 0.0))(p) == sph(p) == 0.8
     @test Translated(sph, Translation(0.05, 1.0, 0.0))(p) ≈ -0.15
     @test p ∈ Translated(sph, Translation(0.05, 1.0, 0.0))
@@ -89,7 +90,7 @@ const P3 = Point{3,Float64}
     tr = BoxTransform(from, to)
     test_mapping(origin(from), origin(to), from, to)
 
-    for (p1, pres) in zip(PointSet(from, Point{3,Float64}), PointSet(to, Point{3,Float64}))
+    for (p1, pres) in zip(PointSet(from, P3), PointSet(to, P3))
       test_mapping(p1, pres, from, to)
     end
   end
@@ -119,17 +120,13 @@ const P3 = Point{3,Float64}
     @test Translation(0.0, 0.0)(set) == set
     (Scaling(1.0, 1.0) ∘ Translation(0.0, 0.0))(set) == set
 
-    set = PointSet([
-      Point(0.0, 0.0, 0.0),
-      Point(1.0, 0.0, 0.0),
-      Point(0.0, 1.0, 0.0),
-      Point(0.0, 0.0, 1.0),
-      Point(1.0, 1.0, 0.0),
-      Point(1.0, 0.0, 1.0),
-      Point(0.0, 1.0, 1.0),
-      Point(1.0, 1.0, 1.0),
-    ])
-    @test boundingelement(set) == Translated(Scaled(HyperCube(1.0), Scaling(0.5, 0.5, 0.5)), Translation(0.5, 0.5, 0.5))
+    hc = Translated(HyperCube(0.5), Translation(0.5, 0.5, 0.5))
+    set = PointSet(hc, P3)
+    be = boundingelement(set)
+    @test isa(be, Transformed{<:HyperCube})
+    @test origin(be) == 0.5 .* ones(P3)
+    @test radius(be) == 0.5 .* ones(P3)
+    @test all(be.(set) .== 0 .== hc.(set))
 
     @test PointSet(HyperCube, P2) == PointSet(P2[(-1, -1), (1, -1), (-1, 1), (1, 1)])
     @test PointSet(HyperCube(0.5), P2) == PointSet(P2[(-0.5, -0.5), (0.5, -0.5), (-0.5, 0.5), (0.5, 0.5)])
