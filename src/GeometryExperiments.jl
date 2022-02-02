@@ -2,9 +2,8 @@ module GeometryExperiments
 
 using StaticArrays: SVector, @SVector
 using AbstractTrees
-import LinearAlgebra: norm
-import Base: in, inv, ≈, ==
 using AutoHashEquals
+using LinearAlgebra
 
 const Point{Dim,T} = SVector{Dim,T}
 
@@ -21,7 +20,6 @@ include("bezier.jl")
 include("mesh_encodings.jl")
 
 export
-
     Point,
 
     # transforms

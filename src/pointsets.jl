@@ -5,8 +5,7 @@ end
 Base.length(set::PointSet) = length(set.points)
 Base.iterate(set::PointSet) = iterate(set.points)
 Base.iterate(set::PointSet, state) = iterate(set.points, state)
-
-(==)(x::PointSet, y::PointSet) = x.points == y.points
+Base.:(==)(x::PointSet, y::PointSet) = x.points == y.points
 
 (transf::Transform)(set::PointSet) = PointSet(map(transf, set))
 

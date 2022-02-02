@@ -13,9 +13,9 @@ struct Rotation{T,R<:RotationType{T}} <: Transform
 end
 (r::Rotation)(p::AbstractVector) = r.rot * p
 
-(≈)(x::Rotation, y::Rotation) = x.rot ≈ y.rot
+Base.isapprox(x::Rotation, y::Rotation) = x.rot ≈ y.rot
 
-inv(r::Rotation) = typeof(r)(-r.rot)
+Base.inv(r::Rotation) = typeof(r)(-r.rot)
 
 const Rotated{O,R<:Rotation} = Transformed{O,R}
 Rotated(obj::O, transf::R) where {O,R} = Rotated{O,R}(obj, transf)

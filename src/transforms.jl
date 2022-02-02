@@ -12,15 +12,15 @@ struct ComposedTransform{TR1<:Transform,TR2<:Transform} <: Transform
   """
   t2::TR2
 end
-(t::ComposedTransform)(p::AbstractVector) = t.t1(t.t2(p))
+(t::ComposedTransform)(p::Union{Number,AbstractVector}) = t.t1(t.t2(p))
 
 AbstractTrees.children(tr::ComposedTransform) = (tr.t1, tr.t2)
 
 transforms(tr::ComposedTransform) = Leaves(tr)
 
-Base.:∘(t1::Transform, t2::Transform) = ComposedTransform(t1, t2)
+Base.:(∘)(t1::Transform, t2::Transform) = ComposedTransform(t1, t2)
 
-inv(t::ComposedTransform) = inv(t.t2) ∘ inv(t.t1)
+Base.inv(t::ComposedTransform) = inv(t.t2) ∘ inv(t.t1)
 
 struct Transformed{O,TR<:Transform}
   obj::O
@@ -32,7 +32,7 @@ struct Transformed{O,TR<:Transform}
 end
 (tr::Transformed)(p) = tr.obj(inv(tr.transf)(p))
 
-(≈)(x::Transformed, y::Transformed) = typeof(x) == typeof(y) && x.obj ≈ y.obj && x.transf ≈ y.transf
+Base.isapprox(x::Transformed, y::Transformed) = typeof(x) == typeof(y) && x.obj ≈ y.obj && x.transf ≈ y.transf
 
 include("transforms/scaling.jl")
 include("transforms/translation.jl")

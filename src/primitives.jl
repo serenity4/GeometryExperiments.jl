@@ -7,19 +7,19 @@ struct NormedPrimitive{P,T} <: Primitive{T}
 end
 
 Base.eltype(::NormedPrimitive{P,T}) where {P,T} = T
-norm(p::Point, ::Type{<:NormedPrimitive{P}}) where {P} = norm(p, P)
+LinearAlgebra.norm(p, ::Type{<:NormedPrimitive{P}}) where {P} = norm(p, P)
 origin(np::NormedPrimitive) = zero(eltype(np))
 radius(tr::NormedPrimitive) = tr.radius
 origin(tr::Transformed{<:NormedPrimitive}) = tr.transf(origin(tr.obj))
-radius(tr::Transformed{<:NormedPrimitive}) = tr.transf(radius(tr.obj))
+radius(tr::Transformed{<:NormedPrimitive}) = tr.transf(radius(tr.obj)) - origin(tr)
 
 (np::NormedPrimitive)(p) = norm(p, typeof(np)) - np.radius
 
-(≈)(x::NormedPrimitive, y::NormedPrimitive) = typeof(x) == typeof(y) && x.radius ≈ y.radius
+Base.isapprox(x::NormedPrimitive, y::NormedPrimitive) = typeof(x) == typeof(y) && x.radius ≈ y.radius
 
 const HyperSphere{T} = NormedPrimitive{2,T}
 
-norm(p::Point, ::Type{<:HyperSphere}) = hypot(p...)
+LinearAlgebra.norm(p::Point, ::Type{<:HyperSphere}) = hypot(p...)
 
 const HyperCube{T} = NormedPrimitive{Inf,T}
 
@@ -38,7 +38,7 @@ function Ellipsoid(semiaxes::AbstractVector)
 end
 Ellipsoid(semiaxes::Number...) = Ellipsoid(collect(semiaxes))
 
-(≈)(x::Ellipsoid, y::Ellipsoid) = x.obj.radius .* x.transf.vec ≈ y.obj.radius .* y.transf.vec
+Base.isapprox(x::Ellipsoid, y::Ellipsoid) = x.obj.radius .* x.transf.vec ≈ y.obj.radius .* y.transf.vec
 
 Base.show(io::IO, elps::Ellipsoid{Dim,T}) where {Dim,T} = print(io, "Ellipsoid{$Dim, $T}($(elps.transf.vec .* elps.obj.radius))")
 
@@ -55,7 +55,7 @@ struct BoxTransform{F,T} <: Transform
 end
 
 function (tr::BoxTransform)(p)
-  ratio = Scaling(Translation(-origin(tr.to))(radius(tr.to))) ∘ inv(Scaling(Translation(-origin(tr.from))(radius(tr.from))))
+  ratio = Scaling(radius(tr.to)) ∘ inv(Scaling(radius(tr.from)))
   transf = Translation(origin(tr.to)) ∘ ratio ∘ Translation(-origin(tr.from))
   transf(p)
 end

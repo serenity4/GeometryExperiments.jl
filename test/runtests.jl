@@ -11,6 +11,7 @@ const P3 = Point{3,Float64}
             tr_inv = inv(tr)
             @test tr ∘ tr_inv == Translation(0., 0.)
             @test tr(Point(1., 2.)) == Point(2., 5.)
+            @test identity(Translation{2,Float64})(Point(1., 2.)) == Point(1., 2.)
         end
 
         @testset "Scalings" begin
@@ -18,10 +19,12 @@ const P3 = Point{3,Float64}
             sc_inv = inv(sc)
             @test sc ∘ sc_inv == Scaling(1., 1.)
             @test sc(Point(1., 2.)) == Point(1., 4.)
+            @test identity(Scaling{2,Float64})(Point(1., 2.)) == Point(1., 2.)
 
             us = UniformScaling(2.)
             @test us ∘ inv(us) == UniformScaling(1.)
             @test us(Point(1., 2.)) == Point(2., 4.)
+            @test identity(UniformScaling{Float64})(Point(1., 2.)) == Point(1., 2.)
         end
 
         @testset "Rotations" begin
@@ -42,35 +45,37 @@ const P3 = Point{3,Float64}
         end
     end
 
-    eval_sph(radius, p::Point) = hypot(p...) - radius
-
     @testset "Primitives" begin
         p = Point(0., 1., 0.)
 
         hc = HyperCube(0.2)
         @test origin(hc) == 0.
         @test radius(hc) == 0.2
-        @test p ∉ hc
-        @test Point(0., 0., 0.) ∈ hc
-        @test Translated(hc, Translation(0., 0., 0.))(p) == hc(p) == 0.8
+        @test !in(p, hc)
+        @test origin(hc) in hc
+
+        @test Box(0.2, Scaling(1., 2., 3.)) === Scaled(hc, Scaling(1., 2., 3.))
         @test Translated(hc, Translation(0.05, 1., 0.))(p) ≈ -0.15
-        @test Transformed(hc, Scaling(1., 2., 3.)) === Box(0.2, Scaling(1., 2., 3.))
-        @test origin(Translated(hc, Translation(1., 2.))) == Point(1., 2.)
-        @test radius(Scaled(hc, Scaling(1., 2.))) == Point(0.2, 0.4)
+
+        hc = Scaled(HyperCube(0.2), Scaling(1., 2.))
+        @test origin(hc) == Point(0., 0.)
+        @test radius(hc) == Point(0.2, 0.4)
+        hc = Translated(hc, Translation(0.3, 0.4))
+        @test origin(hc) == Point(0.3, 0.4)
+        @test radius(hc) == Point(0.2, 0.4)
 
         sph = HyperSphere(0.2)
-        @test p ∉ sph
-        @test Point(0., 0., 0.) ∈ sph
-        @test sph(Point(0.3, 0.4, 0.5)) == eval_sph(0.2, Point(0.3, 0.4, 0.5))
-        @test sph(Point(0.5, 0.2)) == eval_sph(0.2, Point(0.5, 0.2))
+        @test !in(p, sph)
+        @test zero(Point{3,Float64}) in sph
         @test Translated(sph, Translation(0., 0., 0.))(p) == sph(p) == 0.8
         @test Translated(sph, Translation(0.05, 1., 0.))(p) ≈ -0.15
-        @test p ∈ Translated(sph, Translation(0.05, 1., 0.))
+        @test p in Translated(sph, Translation(0.05, 1., 0.))
 
         elps = Ellipsoid(0.2, Scaling(1., 2., 3.))
         @test Scaled(sph, Scaling(1., 2., 3.)) === elps
         @test elps ≈ Ellipsoid(Point(0.2, 0.4, 0.6))
-        @test p ∉ elps
+        @test !in(p, elps)
+        @test origin(elps) in elps
     end
 
     @testset "Advanced transforms" begin
@@ -81,7 +86,7 @@ const P3 = Point{3,Float64}
             @test p2 == pres
         end
         from = Translated(HyperCube(1.), Translation(-5., -5., -5.))
-        to = Translated(HyperCube(2.), Translation(7., 7., 7.))
+        to = Translated(Scaled(HyperCube(2.), Scaling(2., 3., 4.)), Translation(7., 7., 7.))
         tr = BoxTransform(from, to)
         test_mapping(origin(from), origin(to), from, to)
 
@@ -91,7 +96,7 @@ const P3 = Point{3,Float64}
     end
 
     @testset "Projections" begin
-        p = Projection{2}(HyperSphere(eval_sph(0., Point(0.2, 0.2))))
+        p = Projection{2}(HyperSphere(HyperSphere(0.)(Point(0.2, 0.2))))
         @test Point(0.1,0.1) ∈ p
         @test Point(0.1,2.) ∉ p
         @test Point(0.1,2.,0.) ∉ p
@@ -100,7 +105,7 @@ const P3 = Point{3,Float64}
         @test p(Point(0.2,0.2)) == 0.
         @test p(Point(0.2,0.2,0.)) == 0.
         @test p(Point(0.2,0.2,0.5)) == 0.5
-        @test p(Point(0.2,0.2,0.5,0.3)) == eval_sph(0., Point(0.5,0.3))
+        @test p(Point(0.2,0.2,0.5,0.3)) == HyperSphere(0.)(Point(0.5,0.3))
     end
 
     @testset "Point sets" begin
