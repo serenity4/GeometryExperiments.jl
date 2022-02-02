@@ -50,8 +50,8 @@ const P3 = Point{3,Float64}
     hc = HyperCube(0.2)
     @test origin(hc) == 0.0
     @test radius(hc) == 0.2
-    @test !in(p, hc)
-    @test origin(hc) in hc
+    @test p ∉ hc
+    @test origin(hc) ∈ hc
 
     @test Box(0.2, Scaling(1.0, 2.0, 3.0)) === Scaled(hc, Scaling(1.0, 2.0, 3.0))
     @test Translated(hc, Translation(0.05, 1.0, 0.0))(p) ≈ -0.15
@@ -64,24 +64,24 @@ const P3 = Point{3,Float64}
     @test radius(hc) == Point(0.2, 0.4)
 
     sph = HyperSphere(0.2)
-    @test !in(p, sph)
-    @test zero(Point{3,Float64}) in sph
+    @test p ∉ sph
+    @test zero(Point{3,Float64}) ∈ sph
     @test Translated(sph, Translation(0.0, 0.0, 0.0))(p) == sph(p) == 0.8
     @test Translated(sph, Translation(0.05, 1.0, 0.0))(p) ≈ -0.15
-    @test p in Translated(sph, Translation(0.05, 1.0, 0.0))
+    @test p ∈ Translated(sph, Translation(0.05, 1.0, 0.0))
 
     elps = Ellipsoid(0.2, Scaling(1.0, 2.0, 3.0))
     @test Scaled(sph, Scaling(1.0, 2.0, 3.0)) === elps
     @test elps ≈ Ellipsoid(Point(0.2, 0.4, 0.6))
-    @test !in(p, elps)
-    @test origin(elps) in elps
+    @test p ∉ elps
+    @test origin(elps) ∈ elps
   end
 
   @testset "Advanced transforms" begin
     function test_mapping(p1, pres, from, to)
-      @test p1 in from
+      @test p1 ∈ from
       p2 = tr(p1)
-      @test p2 in to
+      @test p2 ∈ to
       @test p2 == pres
     end
     from = Translated(HyperCube(1.0), Translation(-5.0, -5.0, -5.0))
