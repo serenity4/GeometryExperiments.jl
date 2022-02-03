@@ -45,6 +45,10 @@ Base.show(io::IO, elps::Ellipsoid{Dim,T}) where {Dim,T} = print(io, "Ellipsoid{$
 # A box around the origin. This is not the same as `Meshes.Box`, it is missing the translation part.
 const Box{Dim,T} = Scaled{HyperCube{T},Dim,T}
 Box(radius::T, transf::Scaling{Dim,T}) where {Dim,T} = Box{Dim,T}(HyperCube(radius), transf)
+Box(semidiag::Scaling{Dim,T}) where {Dim,T} = Box{Dim,T}(HyperCube(norm(semidiag)), normalize(semidiag))
+function box(min, max)
+  Translated(Box(Scaling((max - min) / 2)), Translation((min + max) / 2))
+end
 
 const Circle{T} = Projection{2,HyperSphere{T}}
 const Square{T} = Projection{2,HyperCube{T}}

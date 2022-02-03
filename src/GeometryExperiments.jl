@@ -39,7 +39,7 @@ export
   NormedPrimitive,
   HyperSphere, HyperCube,
   Ellipsoid,
-  Box,
+  Box, box,
   Circle, Square,
   origin, radius,
 

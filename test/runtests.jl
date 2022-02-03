@@ -54,7 +54,15 @@ const P3 = Point{3,Float64}
     @test p ∉ hc
     @test origin(hc) ∈ hc
 
-    @test Box(0.2, Scaling(1.0, 2.0, 3.0)) === Scaled(hc, Scaling(1.0, 2.0, 3.0))
+    b1 = Box(0.2, Scaling(1.0, 2.0, 3.0))
+    @test b1 === Scaled(hc, Scaling(1.0, 2.0, 3.0))
+    b2 = Box(Scaling(0.2 .* Point(1.0, 2.0, 3.0)))
+    @test origin(b1) == origin(b2) && radius(b1) == radius(b2)
+    b3 = Translated(b2, Translation(0.4, 0.4, 0.4))
+    b4 = box(0.4 .+ Point(-0.2, -0.4, -0.6), 0.4 .+ Point(0.2, 0.4, 0.6))
+    @test origin(b4) ≈ origin(b3)
+    @test radius(b4) ≈ radius(b3)
+
     @test Translated(hc, Translation(0.05, 1.0, 0.0))(p) ≈ -0.15
 
     hc = Scaled(HyperCube(0.2), Scaling(1.0, 2.0))
