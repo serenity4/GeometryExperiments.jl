@@ -180,14 +180,14 @@ const P3 = Point{3,Float64}
 
     fan = TriangleFan(1:5)
     list = TriangleList([(1, 2, 3), (1, 3, 4), (1, 4, 5)])
-    @test GeometryExperiments.topology_class(typeof(fan)) == Triangle
+    @test GeometryExperiments.primitive_topology(typeof(fan)) == TrianglePrimitive
     @test TriangleList(fan) == list
 
-    @test MeshVertexEncoding(P2[(1.2, 1.4), (0.1, 0.2), (0.3, 0.4), (0.5, 0.2)], Triangle) isa MeshVertexEncoding{<:TriangleStrip,P2}
-    @test MeshVertexEncoding(fan, P2[(1.2, 1.4), (0.1, 0.2), (0.3, 0.4), (0.5, 0.2)]) isa MeshVertexEncoding{<:TriangleFan,P2}
+    @test VertexMesh(P2[(1.2, 1.4), (0.1, 0.2), (0.3, 0.4), (0.5, 0.2)], TrianglePrimitive) isa VertexMesh{<:TriangleStrip,P2}
+    @test VertexMesh(fan, P2[(1.2, 1.4), (0.1, 0.2), (0.3, 0.4), (0.5, 0.2)]) isa VertexMesh{<:TriangleFan,P2}
 
     strip = LineStrip(1:5)
-    @test GeometryExperiments.topology_class(typeof(strip)) == Line
+    @test GeometryExperiments.primitive_topology(typeof(strip)) == LinePrimitive
     @test LineList(strip) == LineList([(1, 2), (2, 3), (3, 4), (4, 5)])
   end
 end

@@ -63,13 +63,13 @@ export
   curve_points,
 
   # mesh encodings
-  TopologyClass,
-  Line, Triangle,
+  PrimitiveTopology,
+  LinePrimitive, TrianglePrimitive,
   IndexEncoding,
   Strip, Fan, IndexList,
   TriangleStrip, TriangleFan, TriangleList,
   LineStrip, LineList,
-  MeshEncoding, MeshVertexEncoding
+  VertexMesh
 
 
 end # module
