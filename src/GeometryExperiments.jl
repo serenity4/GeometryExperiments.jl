@@ -7,6 +7,14 @@ using LinearAlgebra
 
 const Point{Dim,T} = SVector{Dim,T}
 
+for i in 2:4
+  for T in (Float32, Float64)
+    sym = Symbol(:Point, i, T === Float64 ? "" : 'f')
+    @eval const $sym = Point{$i, $T}
+    @eval export $sym
+  end
+end
+
 include("transforms.jl")
 include("projection.jl")
 include("primitives.jl")

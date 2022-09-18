@@ -10,6 +10,11 @@ Base.:(==)(x::PointSet, y::PointSet) = x.points == y.points
 (transf::Transform)(set::PointSet) = PointSet(map(transf, set))
 
 centroid(set::PointSet) = sum(set) / length(set)
+centroid(args...) = centroid(PointSet(args...))
+
+PointSet(points::T...) where {T<:Point} = PointSet(SVector{length(points),T}(collect(points)))
+PointSet(points::Point...) = PointSet(promote(points...)...)
+PointSet(points::V) where {Dim,T,V<:SVector{<:Any,Point{Dim,T}}} = PointSet{Dim,T,V}(points)
 
 function boundingelement(set::PointSet{Dim}) where {Dim}
   c = centroid(set)

@@ -1,8 +1,8 @@
 using GeometryExperiments
 using Test
 
-const P2 = Point{2,Float64}
-const P3 = Point{3,Float64}
+const P2 = Point2
+const P3 = Point3
 
 @testset "GeometryExperiments.jl" begin
   @testset "Basic transforms" begin
@@ -117,7 +117,14 @@ const P3 = Point{3,Float64}
   end
 
   @testset "Point sets" begin
+    set = PointSet([Point(0.0, 0.0), Point(1.0, 1.0)])
+    @test set == PointSet(Point(0.0, 0.0), Point(1.0, 1.0))
+    @test set == PointSet(Point(0, 0.0), Point(1.0f0, 1.0f0))
+
     set = PointSet([Point(0.0, 0.0), Point(1.0, 0.0), Point(0.0, 1.0), Point(1.0, 1.0)])
+    @test centroid(set) == Point(0.5, 0.5)
+    @test centroid(set) == centroid(Point(0.0, 0.0), Point(1.0, 0.0), Point(0.0, 1.0), Point(1.0, 1.0))
+
     set2 = PointSet([Point(0.0, 0.5), Point(0.5, 0.0), Point(0.5, 1.0), Point(1.0, 0.5)])
     @test boundingelement(set) == Translated(Scaled(HyperCube(1.0), Scaling(0.5, 0.5)), Translation(0.5, 0.5))
     @test boundingelement(set) == boundingelement(set2)
@@ -190,4 +197,4 @@ const P3 = Point{3,Float64}
     @test GeometryExperiments.primitive_topology(typeof(strip)) == LinePrimitive
     @test LineList(strip) == LineList([(1, 2), (2, 3), (3, 4), (4, 5)])
   end
-end
+end;
