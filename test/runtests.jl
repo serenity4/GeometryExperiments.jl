@@ -180,6 +180,66 @@ const P3 = Point3
     end
   end
 
+  @testset "Meshes" begin
+    quad_mesh() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 3), (3, 4), (4, 1)], [[1, 2, 3, 4]])
+    mesh = quad_mesh()
+    @test length(vertices(mesh)) == 4
+    @test length(edges(mesh)) == 4
+    @test length(faces(mesh)) == 1
+    face = first(faces(mesh))
+    @test centroid(mesh, face) ≈ zero(P2)
+    @test centroid(mesh) == centroid(mesh, face)
+    @test centroid(mesh, first(edges(mesh))) == P2(0, -1)
+
+    rem_face!(mesh, first(faces(mesh)))
+    @test length(vertices(mesh)) == 4
+    @test length(edges(mesh)) == 4
+    @test length(faces(mesh)) == 0
+
+    [rem_edge!(mesh, edge) for edge in edges(mesh)]
+    @test length(vertices(mesh)) == 4
+    @test length(edges(mesh)) == 0
+    @test length(faces(mesh)) == 0
+    @test all(isempty(vertex.edges) for vertex in vertices(mesh))
+
+    [rem_vertex!(mesh, vertex) for vertex in vertices(mesh)]
+    @test length(vertices(mesh)) == 0
+    @test length(edges(mesh)) == 0
+    @test length(faces(mesh)) == 0
+
+    mesh = quad_mesh()
+    [rem_vertex!(mesh, vertex) for vertex in vertices(mesh)]
+    @test length(vertices(mesh)) == 0
+    @test length(edges(mesh)) == 0
+    @test length(faces(mesh)) == 0
+
+    mesh = quad_mesh()
+    v = add_vertex!(mesh, P2(0, 0))
+    @test v.index == 5
+    @test in(v, vertices(mesh))
+    rem_vertex!(mesh, v)
+    @test !in(v, vertices(mesh))
+
+    mesh = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 3), (3, 1), (2, 3), (3, 4), (4, 2)], [[1, 2, 3], [4, 5, 6]])
+    face = first(mesh.faces)
+    @test length(mesh.vertices) == 4 == length(vertices(mesh))
+    @test length(mesh.edges) == 6 == length(edges(mesh))
+    @test length(mesh.faces) == 2 == length(faces(mesh))
+    @test centroid(mesh, first(mesh.faces)) == centroid(P2[(-1, -1), (1, -1), (1, 1)])
+    @test iszero(centroid(mesh))
+
+    mesh = subdivide!(quad_mesh())
+    @test length(vertices(mesh)) == 9
+    @test length(edges(mesh)) == 12
+    @test length(faces(mesh)) == 4
+    @test all(length(face.edges) == 4 for face in faces(mesh))
+    @test all(!isempty(edge.faces) for edge in edges(mesh))
+    @test all(!isempty(vertex.edges) for vertex in vertices(mesh))
+    @test centroid(mesh) ≈ zero(P2)
+
+    # subdivide!(mesh)
+  end
+
   @testset "Mesh encodings" begin
     strip = TriangleStrip(1:5)
     list = TriangleList([(1, 2, 3), (2, 4, 3), (3, 4, 5)])
@@ -198,12 +258,3 @@ const P3 = Point3
     @test LineList(strip) == LineList([(1, 2), (2, 3), (3, 4), (4, 5)])
   end
 end;
-
-
-### Benchmarks
-using BenchmarkTools
-
-m = Mesh{Point}(P2[(1.2, 1.4), (0.1, 0.2), (0.3, 0.4), (0.5, 0.2)], [(1, 2), (2, 3), (3, 1), (2, 3), (3, 4), (4, 2)], [(1, 2, 3), (4, 5, 6)]) # ~8 µs
-
-@btime Polytope(4, [(1, 2), (2, 3), (3, 1), (2, 3), (3, 4), (4, 2)], [(1, 2, 3), (4, 5, 6)]) # ~8 µs
-@btime Polytope(4, [(1, 2, 3, 1), (2, 3, 4, 2)], [(1,), (2,)]) # ~5 µs

@@ -12,6 +12,18 @@ Base.:(==)(x::PointSet, y::PointSet) = x.points == y.points
 centroid(set::PointSet) = sum(set) / length(set)
 centroid(args...) = centroid(PointSet(args...))
 
+# Faster version for generators.
+function centroid(args::Base.Generator)
+  n = 0
+  res = nothing
+  for arg in args
+    n += 1
+    isnothing(res) ? (res = arg) : (res += arg)
+  end
+  @assert !iszero(n)
+  res / n
+end
+
 PointSet(points::T...) where {T<:Point} = PointSet(SVector{length(points),T}(collect(points)))
 PointSet(points::Point...) = PointSet(promote(points...)...)
 PointSet(points::V) where {Dim,T,V<:SVector{<:Any,Point{Dim,T}}} = PointSet{Dim,T,V}(points)

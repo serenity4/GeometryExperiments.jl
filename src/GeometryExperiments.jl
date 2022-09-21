@@ -84,7 +84,14 @@ export
   LineStrip, LineList,
   VertexMesh,
   Polytope,
-  Mesh
+  Mesh,
+  location,
+  vertices,
+  edges,
+  faces,
+  add_vertex!, add_edge!, add_face!,
+  rem_vertex!, rem_edge!, rem_face!,
+  subdivide!
 
 
 end # module
