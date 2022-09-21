@@ -6,6 +6,7 @@ using AutoHashEquals
 using LinearAlgebra
 
 const Point{Dim,T} = SVector{Dim,T}
+const Optional{T} = Union{T,Nothing}
 
 for i in 2:4
   for T in (Float32, Float64)
@@ -25,7 +26,11 @@ include("coordinate_systems.jl")
 include("curves.jl")
 include("bezier.jl")
 
+# include("polytope.jl")
+include("mesh.jl")
+# include("mesh_2.jl")
 include("mesh_encodings.jl")
+include("subdivide.jl")
 
 export
   Point,
@@ -77,7 +82,9 @@ export
   Strip, Fan, IndexList,
   TriangleStrip, TriangleFan, TriangleList,
   LineStrip, LineList,
-  VertexMesh
+  VertexMesh,
+  Polytope,
+  Mesh
 
 
 end # module
