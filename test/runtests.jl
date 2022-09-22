@@ -272,6 +272,7 @@ const P3 = Point3
     @test all(!isempty(vertex.edges) for vertex in vertices(mesh))
     @test centroid(mesh) ≈ zero(P2)
 
+    # FIXME
     # subdivide!(mesh)
   end
 
