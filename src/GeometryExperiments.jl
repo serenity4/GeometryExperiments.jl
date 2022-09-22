@@ -3,6 +3,7 @@ module GeometryExperiments
 using StaticArrays: SVector, @SVector
 using AbstractTrees
 using AutoHashEquals
+using Dictionaries
 using LinearAlgebra
 
 const Point{Dim,T} = SVector{Dim,T}
@@ -15,6 +16,8 @@ for i in 2:4
     @eval export $sym
   end
 end
+
+include("utils.jl")
 
 include("transforms.jl")
 include("projection.jl")
@@ -84,13 +87,18 @@ export
   LineStrip, LineList,
   VertexMesh,
   Polytope,
-  Mesh,
+  Mesh, MeshDiff, MeshStatistics,
   location,
   vertices,
   edges,
   faces,
   add_vertex!, add_edge!, add_face!,
+  add_vertices!, add_edges!, add_faces!,
   rem_vertex!, rem_edge!, rem_face!,
+  rem_vertices!, rem_edges!, rem_faces!,
+  MeshVertex, MeshEdge, MeshFace,
+  nv, ne, nf,
+  apply!,
   subdivide!
 
 

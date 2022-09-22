@@ -182,6 +182,9 @@ const P3 = Point3
 
   @testset "Meshes" begin
     quad_mesh() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 3), (3, 4), (4, 1)], [[1, 2, 3, 4]])
+
+    # Direct mutation and utilities.
+
     mesh = quad_mesh()
     @test length(vertices(mesh)) == 4
     @test length(edges(mesh)) == 4
@@ -196,19 +199,19 @@ const P3 = Point3
     @test length(edges(mesh)) == 4
     @test length(faces(mesh)) == 0
 
-    [rem_edge!(mesh, edge) for edge in edges(mesh)]
+    rem_edges!(mesh)
     @test length(vertices(mesh)) == 4
     @test length(edges(mesh)) == 0
     @test length(faces(mesh)) == 0
     @test all(isempty(vertex.edges) for vertex in vertices(mesh))
 
-    [rem_vertex!(mesh, vertex) for vertex in vertices(mesh)]
+    rem_vertices!(mesh)
     @test length(vertices(mesh)) == 0
     @test length(edges(mesh)) == 0
     @test length(faces(mesh)) == 0
 
     mesh = quad_mesh()
-    [rem_vertex!(mesh, vertex) for vertex in vertices(mesh)]
+    rem_vertices!(mesh)
     @test length(vertices(mesh)) == 0
     @test length(edges(mesh)) == 0
     @test length(faces(mesh)) == 0
@@ -227,6 +230,38 @@ const P3 = Point3
     @test length(mesh.faces) == 2 == length(faces(mesh))
     @test centroid(mesh, first(mesh.faces)) == centroid(P2[(-1, -1), (1, -1), (1, 1)])
     @test iszero(centroid(mesh))
+
+    # Transactional mutation.
+
+    mesh = quad_mesh()
+    diff = MeshDiff(mesh)
+    stats = MeshStatistics(mesh)
+    rem_vertices!(diff)
+    rem_edges!(diff)
+    rem_faces!(diff)
+    @test MeshStatistics(mesh) == stats
+    apply!(diff)
+    @test MeshStatistics(mesh) == MeshStatistics(0, 0, 0)
+    apply!(diff)
+    @test MeshStatistics(mesh) == MeshStatistics(0, 0, 0)
+
+    mesh = quad_mesh()
+    diff = MeshDiff(mesh)
+    stats = MeshStatistics(mesh)
+    a = add_vertex!(diff, P2(4, 4))
+    b = add_vertex!(diff, P2(5, 5))
+    c = add_vertex!(diff, P2(5, 4))
+    e1 = add_edge!(diff, a, b)
+    e2 = add_edge!(diff, b, c)
+    e3 = add_edge!(diff, c, a)
+    f = add_face!(diff, [e1, e2, e3])
+    @test MeshStatistics(mesh) == stats
+    apply!(diff)
+    @test MeshStatistics(mesh) == MeshStatistics(stats.nv + 3, stats.ne + 3, stats.nf + 1)
+    apply!(diff)
+    @test MeshStatistics(mesh) == MeshStatistics(stats.nv + 3, stats.ne + 3, stats.nf + 1)
+
+    # Mesh subdivision.
 
     mesh = subdivide!(quad_mesh())
     @test length(vertices(mesh)) == 9

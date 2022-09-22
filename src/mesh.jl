@@ -2,6 +2,9 @@ const VertexIndex = Int
 const EdgeIndex = Int
 const FaceIndex = Int
 
+index(element) = element.index
+index(i::Int) = i
+
 struct MeshVertex
   index::VertexIndex
   edges::Vector{EdgeIndex}
@@ -22,62 +25,49 @@ struct MeshFace
 end
 
 struct Mesh{VT,ET,FT}
-  vertices::Vector{Optional{MeshVertex}}
-  edges::Vector{Optional{MeshEdge}}
-  faces::Vector{Optional{MeshFace}}
+  vertices::Dictionary{VertexIndex,MeshVertex}
+  edges::Dictionary{EdgeIndex,MeshEdge}
+  faces::Dictionary{FaceIndex,MeshFace}
   # Use a dictionary to allow holes in indices.
-  vertex_attributes::Dict{VertexIndex,VT}
-  edge_attributes::Dict{EdgeIndex,ET}
-  face_attributes::Dict{FaceIndex,FT}
+  vertex_attributes::Dictionary{VertexIndex,VT}
+  edge_attributes::Dictionary{EdgeIndex,ET}
+  face_attributes::Dictionary{FaceIndex,FT}
   Mesh{VT,ET,FT}() where {VT,ET,FT} =
-    new{VT,ET,FT}(MeshVertex[], MeshEdge[], MeshFace[], Dict{VertexIndex,VT}(), Dict{EdgeIndex,ET}(), Dict{FaceIndex,FT}())
+    new{VT,ET,FT}(
+      Dictionary{VertexIndex,MeshVertex}(),
+      Dictionary{EdgeIndex,MeshEdge}(),
+      Dictionary{FaceIndex,MeshFace}(),
+      Dictionary{VertexIndex,VT}(),
+      Dictionary{EdgeIndex,ET}(),
+      Dictionary{FaceIndex,FT}(),
+    )
 end
 
 function get_vertex(mesh::Mesh, index::VertexIndex)
-  x = mesh.vertices[index]
+  x = get(mesh.vertices, index, nothing)
   !isnothing(x) || error("Vertex $index not found")
   x
 end
 
 function get_edge(mesh::Mesh, index::EdgeIndex)
-  x = mesh.edges[index]
+  x = get(mesh.edges, index, nothing)
   !isnothing(x) || error("Edge $index not found")
   x
 end
 
 function get_face(mesh::Mesh, index::FaceIndex)
-  x = mesh.faces[index]
+  x = get(mesh.faces, index, nothing)
   !isnothing(x) || error("Face $index not found")
   x
 end
 
-edges(mesh::Mesh, vertex::MeshVertex) = @view mesh.edges[vertex.edges]
-edges(mesh::Mesh, face::MeshFace) = @view mesh.edges[face.edges]
-faces(mesh::Mesh, edge::MeshEdge) = @view mesh.faces[edge.faces]
+edges(mesh::Mesh, vertex::MeshVertex) = getindices(mesh.edges, vertex.edges)
+edges(mesh::Mesh, face::MeshFace) = getindices(mesh.edges, face.edges)
+faces(mesh::Mesh, edge::MeshEdge) = getindices(mesh.faces, edge.faces)
 
-function vertices(mesh::Mesh)
-  vertices = MeshVertex[]
-  for vertex in mesh.vertices
-    !isnothing(vertex) && push!(vertices, vertex)
-  end
-  vertices
-end
-
-function edges(mesh::Mesh)
-  edges = MeshEdge[]
-  for edge in mesh.edges
-    !isnothing(edge) && push!(edges, edge)
-  end
-  edges
-end
-
-function faces(mesh::Mesh)
-  faces = MeshFace[]
-  for face in mesh.faces
-    !isnothing(face) && push!(faces, face)
-  end
-  faces
-end
+vertices(mesh::Mesh) = mesh.vertices
+edges(mesh::Mesh) = mesh.edges
+faces(mesh::Mesh) = mesh.faces
 
 function adjacent_faces(mesh::Mesh, face::MeshFace)
   faces = MeshFace[]
@@ -99,14 +89,9 @@ function vertices(mesh::Mesh, face::MeshFace)
   vertices
 end
 
-function new_element!(vector::Vector, index::Int, value)
-  if in(index, first(axes(vector)))
-    existing = vector[index]
-    !isnothing(existing) && return false
-  else
-    resize!(vector, index)
-  end
-  vector[index] = value
+function new_element!(d::Dictionary, index::Int, value)
+  haskey(d, index) && return false
+  insert!(d, index, value)
   true
 end
 
@@ -142,24 +127,35 @@ function add_vertex!(mesh::Mesh, v)
   vertex = mesh_vertex(mesh, v)
   @assert add_vertex!(mesh, vertex)
   attr = vertex_attribute(v)
-  !isnothing(attr) && (mesh.vertex_attributes[vertex.index] = attr)
+  !isnothing(attr) && set!(mesh.vertex_attributes, vertex.index, attr)
   vertex
 end
 
+vertex_attribute(::Any) = nothing
 vertex_attribute(v::Point) = v
-mesh_vertex(mesh::Mesh, ::Any) = MeshVertex(nextind(mesh.vertices, lastindex(mesh.vertices)))
+
+lastindex_dict(d::Dictionary) = isempty(d) ? 0 : lastindex(d)
+nextindex(d::Dictionary) = lastindex_dict(d) + 1
+
+mesh_vertex(mesh::Mesh, ::Any) = MeshVertex(nextindex(mesh.vertices))
 
 function add_edge!(mesh::Mesh, e)
   edge = mesh_edge(mesh, e)
   @assert add_edge!(mesh, edge)
   attr = edge_attribute(e)
-  !isnothing(attr) && (mesh.edge_attributes[edge.index] = attr)
+  !isnothing(attr) && set!(mesh.edge_attributes, edge.index, attr)
   edge
 end
 
-edge_attribute(e) = nothing
-mesh_edge(mesh::Mesh, e::Union{<:Pair{<:Integer,<:Integer},<:Tuple{<:Integer,<:Integer}}) = MeshEdge(nextind(mesh.edges, lastindex(mesh.edges)), e...)
-mesh_edge(mesh::Mesh, e::Union{<:Pair{MeshVertex,MeshVertex},<:Tuple{MeshVertex,MeshVertex}}) = mesh_edge(mesh, e.first.index => e.second.index)
+add_edge!(mesh, src, dst) = add_edge!(mesh, src => dst)
+
+edge_attribute(::Any) = nothing
+mesh_edge(mesh::Mesh, e) = MeshEdge(nextindex(mesh.edges), src(e), dst(e))
+
+src(edge::MeshEdge) = edge.src
+dst(edge::MeshEdge) = edge.dst
+src(edge::Union{Pair,Tuple{<:Any,<:Any}}) = index(first(edge))
+dst(edge::Union{Pair,Tuple{<:Any,<:Any}}) = index(last(edge))
 
 function mesh_edge(mesh, e)
   error(
@@ -175,12 +171,15 @@ function add_face!(mesh::Mesh, f)
   face = mesh_face(mesh, f)
   @assert add_face!(mesh, face)
   attr = face_attribute(f)
-  !isnothing(attr) && (mesh.face_attributes[face.index] = attr)
+  !isnothing(attr) && set!(mesh.face_attributes, face.index, attr)
   face
 end
 
-face_attribute(f) = nothing
-mesh_face(mesh::Mesh, e::AbstractVector{<:Integer}) = MeshFace(nextind(mesh.faces, lastindex(mesh.faces)), e)
+face_attribute(::Any) = nothing
+mesh_face(mesh::Mesh, face) = MeshFace(nextindex(mesh.faces), face_edges(face))
+face_edges(edges::AbstractVector{<:Integer}) = edges
+face_edges(face::MeshFace) = face.edges
+face_edges(edges::AbstractVector{MeshEdge}) = index.(edges)
 
 function mesh_face(mesh, e)
   error(
@@ -192,23 +191,15 @@ function mesh_face(mesh, e)
   )
 end
 
-function delete_element!(vector::Vector, attributes::Dict, index::Int)
+function delete_element!(d::Dictionary, attributes::Dictionary, index::Int)
   haskey(attributes, index) && delete!(attributes, index)
-  in(index, first(axes(vector))) || return false
-  if index == lastindex(vector)
-    # Shrink the vector.
-    last = findlast(!isnothing, vector)
-    resize!(vector, last == index ? index - 1 : last)
-  else
-    vector[index] = nothing
-  end
+  haskey(d, index) || return false
+  delete!(d, index)
   true
 end
 
 function rem_vertex!(mesh::Mesh, vertex::MeshVertex)
-  for edge in copy(edges(mesh, vertex))
-    rem_edge!(mesh, edge)
-  end
+  rem_edges!(mesh, edges(mesh, vertex))
   delete_element!(mesh.vertices, mesh.vertex_attributes, vertex.index)
 end
 
@@ -217,31 +208,59 @@ function rem_edge!(mesh::Mesh, edge::MeshEdge)
     i = findfirst(==(edge.index), vertex.edges)
     deleteat!(vertex.edges, i)
   end
-  for face in copy(faces(mesh, edge))
-    rem_face!(mesh, face)
-  end
+  rem_faces!(mesh, faces(mesh, edge))
   delete_element!(mesh.edges, mesh.edge_attributes, edge.index)
 end
 
 function rem_face!(mesh::Mesh, face::MeshFace)
-  for edge in copy(edges(mesh, face))
+  for edge in edges(mesh, face)
     i = findfirst(==(face.index), edge.faces)
     deleteat!(edge.faces, i)
   end
   delete_element!(mesh.faces, mesh.face_attributes, face.index)
 end
 
-function Mesh{VT,ET,FT}(vertices, edges, faces) where {VT,ET,FT}
-  mesh = Mesh{VT,ET,FT}()
+function rem_vertices!(mesh, vertices)
+  for vertex in vertices
+    rem_vertex!(mesh, vertex)
+  end
+end
+
+function rem_edges!(mesh, edges)
+  for edge in edges
+    rem_edge!(mesh, edge)
+  end
+end
+
+function rem_faces!(mesh, faces)
+  for face in faces
+    rem_face!(mesh, face)
+  end
+end
+
+function add_vertices!(mesh, vertices)
   for vertex in vertices
     add_vertex!(mesh, vertex)
   end
+end
+
+function add_edges!(mesh, edges)
   for edge in edges
     add_edge!(mesh, edge)
   end
+end
+
+function add_faces!(mesh, faces)
   for face in faces
     add_face!(mesh, face)
   end
+end
+
+function Mesh{VT,ET,FT}(vertices, edges, faces) where {VT,ET,FT}
+  mesh = Mesh{VT,ET,FT}()
+  add_vertices!(mesh, vertices)
+  add_edges!(mesh, edges)
+  add_faces!(mesh, faces)
   mesh
 end
 
@@ -255,3 +274,23 @@ location(p::Point) = p
 centroid(mesh::Mesh, edge::MeshEdge) = centroid(location(mesh, get_vertex(mesh, edge.src)), location(mesh, get_vertex(mesh, edge.dst)))
 centroid(mesh::Mesh, face::MeshFace) = centroid((location(mesh, vertex) for vertex in vertices(mesh, face)))
 centroid(mesh::Mesh) = centroid((location(mesh, vertex) for vertex in vertices(mesh)))
+
+rem_vertices!(mesh) = rem_vertices!(mesh, collect(vertices(mesh)))
+rem_edges!(mesh) = rem_edges!(mesh, collect(edges(mesh)))
+rem_faces!(mesh) = rem_faces!(mesh, collect(faces(mesh)))
+
+struct MeshStatistics
+  nv::Int
+  ne::Int
+  nf::Int
+end
+
+nv(mesh) = length(vertices(mesh))
+ne(mesh) = length(edges(mesh))
+nf(mesh) = length(faces(mesh))
+
+MeshStatistics(mesh) = MeshStatistics(nv(mesh), ne(mesh), nf(mesh))
+
+function Base.show(io::IO, mesh::Mesh)
+  print(io, typeof(mesh), "(", nv(mesh), " vertices, ", ne(mesh), " edges, ", nf(mesh), " faces)")
+end
