@@ -1,3 +1,13 @@
+#=
+
+Interestingly enough, this implementation coincidentally converged to an almost identical version of the Adjacency and Incidence Framework,
+with the minor exception that attributes (such as position and normals) are stored outside the related
+elements themselves, and that these attributes can be defined on edges and faces (and not exclusively on vertices).
+
+See the following paper by Frutuoso G. M. Silva and Abel J. P. Gomes for more information: Adjacency and Incidence Framework - A data structure for efficient and fast management of multiresolution meshes.
+
+=#
+
 const VertexIndex = Int
 const EdgeIndex = Int
 const FaceIndex = Int
@@ -24,6 +34,12 @@ struct MeshFace
   edges::Vector{EdgeIndex}
 end
 
+"""
+General representation of a two-dimensional mesh embedded in an arbitrary space.
+
+The associated surface needs not be manifold; there can be dangling edges, lone
+vertices, and faces linked only by a single vertex.
+"""
 struct Mesh{VT,ET,FT}
   vertices::GranularVector{MeshVertex}
   edges::GranularVector{MeshEdge}

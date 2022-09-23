@@ -280,6 +280,8 @@ const P3 = Point3
       subdivide!(mesh)
       @test_broken MeshStatistics(mesh) == MeshStatistics((2^(i + 1) + 2)^2 / 4, 2^i * ((2^(i + 1)) + 2), 4^i)
     end
+
+    @test MeshStatistics(mesh) == MeshStatistics(subdivide!(quad_mesh(), 5))
   end
 
   @testset "Mesh encodings" begin

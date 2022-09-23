@@ -31,3 +31,10 @@ function subdivide!(mesh::Mesh)
 
   apply!(diff)
 end
+
+function subdivide!(mesh, iterations::Integer)
+  for _ in 1:iterations
+    subdivide!(mesh)
+  end
+  mesh
+end
