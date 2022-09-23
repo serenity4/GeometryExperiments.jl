@@ -274,8 +274,12 @@ const P3 = Point3
     @test all(!isempty(vertex.edges) for vertex in vertices(mesh))
     @test centroid(mesh) ≈ zero(P2)
 
-    # FIXME
-    # subdivide!(mesh)
+    for i in 2:5
+      # Number of verts, edges and faces for subdivided quads.
+      # See https://blender.stackexchange.com/a/15667.
+      subdivide!(mesh)
+      @test_broken MeshStatistics(mesh) == MeshStatistics((2^(i + 1) + 2)^2 / 4, 2^i * ((2^(i + 1)) + 2), 4^i)
+    end
   end
 
   @testset "Mesh encodings" begin

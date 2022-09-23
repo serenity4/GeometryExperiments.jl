@@ -30,6 +30,6 @@ vertex_attribute(v::Point) = v
 location(mesh::Mesh, vertex::MeshVertex) = location(mesh.vertex_attributes[vertex.index])
 location(p::Point) = p
 
-centroid(mesh::Mesh, edge::MeshEdge) = centroid(location(mesh, get_vertex(mesh, edge.src)), location(mesh, get_vertex(mesh, edge.dst)))
+centroid(mesh::Mesh, edge::MeshEdge) = centroid(location(mesh, mesh.vertices[edge.src]), location(mesh, mesh.vertices[edge.dst]))
 centroid(mesh::Mesh, face::MeshFace) = centroid((location(mesh, vertex) for vertex in vertices(mesh, face)))
 centroid(mesh::Mesh) = centroid((location(mesh, vertex) for vertex in vertices(mesh)))

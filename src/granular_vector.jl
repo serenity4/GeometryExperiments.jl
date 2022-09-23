@@ -13,7 +13,7 @@ the number of live elements in the collection. For this reason, `push!` is O(n/2
 Note that buffer slots are never deleted by purpose, except with `empty!`. Therefore, if the container grows then shrinks logically, memory won't be freed automatically.
 In this case, you must `empty!` the container manually or build another one.
 """
-struct GranularVector{T,V<:AbstractVector{Union{Nothing,T}}} <: AbstractVector{T}
+struct GranularVector{T,V<:AbstractVector{Union{Nothing,T}}}
   vec::V
   nothing_count::Base.RefValue{Int}
   current_hole::Base.RefValue{Int}
@@ -30,10 +30,18 @@ GranularVector{T}(; granularity = DEFAULT_GRANULARITY) where {T} = GranularVecto
 
 Base.eltype(::Type{<:GranularVector{T}}) where {T} = T
 
-@inline Base.getindex(gvec::GranularVector{T}, i) where {T} = getindex(gvec.vec, i)::T
+@inline function Base.getindex(gvec::GranularVector{T}, i) where {T}
+  val = getindex(gvec.vec, i)
+  !isnothing(val) || error("Index $i not assigned in $gvec")
+  val
+end
+
+inrange(gvec::GranularVector, index) = in(index, first(axes(gvec.vec)))
+isdefined(gvec::GranularVector, index) = !isnothing(gvec.vec[index])
+Base.isassigned(gvec::GranularVector, index::Integer) = inrange(gvec, index) && isdefined(gvec, index)
 
 function Base.setindex!(gvec::GranularVector, val, i) where {T}
-  was_nothing = isnothing(gvec.vec[i])
+  was_nothing = !isdefined(gvec, i)
   gvec.vec[i] = val
   if was_nothing
     gvec.nothing_count[] -= 1
@@ -44,7 +52,7 @@ end
 Base.eachindex(gvec::GranularVector) = Iterators.Filter(i -> !isnothing(gvec.vec[i]), eachindex(gvec.vec))
 
 function Base.deleteat!(gvec::GranularVector, i)
-  isnothing(gvec.vec[i]) && return gvec
+  !isdefined(gvec, i) && return gvec
   gvec.vec[i] = nothing
   gvec.nothing_count[] += 1
   gvec
@@ -98,6 +106,45 @@ function next_hole!(gvec::GranularVector)
   lastindex(gvec.vec)
 end
 
+nextind!(gvec::GranularVector) = iszero(gvec.nothing_count[]) ? lastindex(gvec.vec) + 1 : next_hole!(gvec)
+
+function Base.insert!(gvec::GranularVector, index, item)
+  if inrange(gvec, index)
+    !isdefined(gvec, index) || error("Index $index has already been assigned")
+    gvec[index] = item
+  else
+    grow_insert!(gvec, index, item)
+  end
+end
+
+function Base.resize!(gvec::GranularVector, n)
+  nl = lastindex(gvec.vec)
+  resize!(gvec.vec, n)
+  gvec.nothing_count[] += n - nl
+  for i in (nl + 1):n
+    @inbounds gvec.vec[i] = nothing
+  end
+  gvec
+end
+
+function grow_insert!(gvec::GranularVector, index, item)
+  n = lastindex(gvec.vec)
+  if index == n + 1
+    push!(gvec.vec, item)
+  else
+    resize!(gvec, index)
+    gvec[index] = item
+  end
+end
+
+function Dictionaries.set!(gvec::GranularVector, index, item)
+  if isassigned(gvec, index)
+    gvec[index] = item
+  else
+    insert!(gvec, index, item)
+  end
+end
+
 function Base.iterate(gvec::GranularVector)
   for i in eachindex(gvec.vec)
     @inbounds val = gvec.vec[i]
@@ -111,6 +158,30 @@ function Base.iterate(gvec::GranularVector, state::Integer)
     !isnothing(val) && return (val, i + 1)
   end
 end
+
+struct GranularVectorView{GV<:GranularVector,I}
+  parent::GV
+  indices::I
+end
+
+Base.getindex(gview::GranularVectorView, index) = getindex(gview.parent, gview.indices[index])
+Base.setindex!(gview::GranularVectorView, value, index) = setindex!(gview.parent, value, gview.indices[index])
+
+Base.iterate(gview::GranularVectorView) = iterate(gview, 1)
+
+function Base.iterate(gview::GranularVectorView, i::Integer)
+  length(gview.indices) ≥ i || return nothing
+  index = gview.indices[i]
+  isdefined(gview.parent, index) || return iterate(gview, i + 1)
+  (gview.parent[index], i + 1)
+end
+
+# The size is unknown because we force views to ignore any undefined values,
+# which may have been made undefined after the view was created.
+Base.IteratorSize(::Type{<:GranularVectorView}) = Iterators.SizeUnknown()
+Base.eltype(gview::GranularVectorView) = eltype(gview.parent)
+
+Base.view(gvec::GranularVector, indices) = GranularVectorView(gvec, indices)
 
 function Base.show(io::IO, ::MIME"text/plain", gvec::GranularVector)
   print(io, typeof(gvec))

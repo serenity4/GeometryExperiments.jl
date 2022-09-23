@@ -18,9 +18,9 @@ mutable struct MeshDiff{VT,ET,FT}
     new{VT,ET,FT}(
       mesh,
       false,
-      lastindex_dict(mesh.vertices),
-      lastindex_dict(mesh.edges),
-      lastindex_dict(mesh.faces),
+      length(mesh.vertices),
+      length(mesh.edges),
+      length(mesh.faces),
       PackedAttribute{MeshVertex,VT}[],
       PackedAttribute{MeshEdge,ET}[],
       PackedAttribute{MeshFace,FT}[],
