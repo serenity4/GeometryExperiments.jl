@@ -13,7 +13,7 @@ function subdivide!(mesh::Mesh)
       push!(edges_from_center, index(new_edge))
     end
     border_edges = map(enumerate(border_vertices)) do (i, v)
-      index(add_edge!(diff, v, border_vertices[mod1(i + 1, lastindex(border_vertices))]))
+      index(add_edge!(diff, v, border_vertices[mod1(i + 1, end)]))
     end
     for i in eachindex(edges_from_center)
       add_face!(
@@ -21,9 +21,9 @@ function subdivide!(mesh::Mesh)
         EdgeIndex[
           edges_from_center[i],
           border_edges[2i - 1],
-          border_edges[mod1(2i, lastindex(border_edges))],
+          border_edges[mod1(2i, end)],
           # Note that this edge should be flipped for a consistent ordering in a directed setting.
-          edges_from_center[mod1(i + 1, lastindex(edges_from_center))],
+          edges_from_center[mod1(i + 1, end)],
         ],
       )
     end

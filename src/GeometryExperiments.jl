@@ -30,6 +30,7 @@ include("curves.jl")
 include("bezier.jl")
 
 include("mesh.jl")
+include("mesh/granular_vector.jl")
 include("mesh/attributes.jl")
 include("mesh/diff.jl")
 include("mesh/encodings.jl")
@@ -78,14 +79,7 @@ export
   startindex,
   curve_points,
 
-  # mesh encodings
-  PrimitiveTopology,
-  LinePrimitive, TrianglePrimitive,
-  IndexEncoding,
-  Strip, Fan, IndexList,
-  TriangleStrip, TriangleFan, TriangleList,
-  LineStrip, LineList,
-  VertexMesh,
+  # meshes
   Polytope,
   Mesh, MeshDiff, MeshStatistics,
   location,
@@ -99,6 +93,13 @@ export
   MeshVertex, MeshEdge, MeshFace,
   nv, ne, nf,
   apply!,
+  PrimitiveTopology,
+  LinePrimitive, TrianglePrimitive,
+  IndexEncoding,
+  Strip, Fan, IndexList,
+  TriangleStrip, TriangleFan, TriangleList,
+  LineStrip, LineList,
+  VertexMesh,
   subdivide!
 
 

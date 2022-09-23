@@ -180,6 +180,8 @@ const P3 = Point3
     end
   end
 
+  include("granular_vector.jl")
+
   @testset "Meshes" begin
     quad_mesh() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 3), (3, 4), (4, 1)], [[1, 2, 3, 4]])
 
