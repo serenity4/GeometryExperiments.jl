@@ -29,11 +29,11 @@ include("coordinate_systems.jl")
 include("curves.jl")
 include("bezier.jl")
 
-# include("polytope.jl")
 include("mesh.jl")
-# include("mesh_2.jl")
-include("mesh_encodings.jl")
-include("subdivide.jl")
+include("mesh/attributes.jl")
+include("mesh/diff.jl")
+include("mesh/encodings.jl")
+include("mesh/subdivide.jl")
 
 export
   Point,

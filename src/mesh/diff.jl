@@ -1,26 +1,3 @@
-struct PackedAttribute{T,A}
-  element::T
-  attribute::A
-end
-
-vertex_attribute(packed::PackedAttribute{MeshVertex}) = packed.attribute
-edge_attribute(packed::PackedAttribute{MeshEdge}) = packed.attribute
-face_attribute(packed::PackedAttribute{MeshFace}) = packed.attribute
-
-mesh_vertex(packed::PackedAttribute{MeshVertex}) = packed.element
-mesh_edge(packed::PackedAttribute{MeshEdge}) = packed.element
-mesh_face(packed::PackedAttribute{MeshFace}) = packed.element
-
-index(packed::PackedAttribute) = index(packed.element)
-src(packed::PackedAttribute{MeshEdge}) = src(packed.element)
-dst(packed::PackedAttribute{MeshEdge}) = dst(packed.element)
-face_edges(packed::PackedAttribute{MeshFace}) = face_edges(packed.element)
-
-function Base.show(io::IO, ::MIME"text/plain", attr::PackedAttribute)
-  print(io, attr.element)
-  printstyled(io, " => ", attr.attribute; color = isnothing(attr.attribute) ? :light_black : :magenta)
-end
-
 mutable struct MeshDiff{VT,ET,FT}
   const mesh::Mesh{VT,ET,FT}
   applied::Bool
@@ -164,38 +141,4 @@ function rem_face!(diff::MeshDiff, face::MeshFace)
   check_not_applied(diff)
   push!(diff.face_deletions, face)
   nothing
-end
-
-function subdivide!(mesh::Mesh)
-  diff = MeshDiff(mesh)
-
-  for face in faces(mesh)
-    center_vertex = add_vertex!(diff, centroid(mesh, face))
-    border_vertices = VertexIndex[]
-    edges_from_center = EdgeIndex[]
-    for edge in edges(mesh, face)
-      rem_edge!(diff, edge)
-      midedge_vertex = add_vertex!(diff, centroid(mesh, edge))
-      push!(border_vertices, index(midedge_vertex), dst(edge))
-      new_edge = add_edge!(diff, center_vertex, midedge_vertex)
-      push!(edges_from_center, index(new_edge))
-    end
-    border_edges = map(enumerate(border_vertices)) do (i, v)
-      index(add_edge!(diff, v, border_vertices[mod1(i + 1, lastindex(border_vertices))]))
-    end
-    for i in eachindex(edges_from_center)
-      add_face!(
-        diff,
-        EdgeIndex[
-          edges_from_center[i],
-          border_edges[2i - 1],
-          border_edges[mod1(2i, lastindex(border_edges))],
-          # Note that this edge should be flipped for a consistent ordering in a directed setting.
-          edges_from_center[mod1(i + 1, lastindex(edges_from_center))],
-        ],
-      )
-    end
-  end
-
-  apply!(diff)
 end

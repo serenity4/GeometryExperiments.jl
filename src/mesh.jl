@@ -131,9 +131,6 @@ function add_vertex!(mesh::Mesh, v)
   vertex
 end
 
-vertex_attribute(::Any) = nothing
-vertex_attribute(v::Point) = v
-
 lastindex_dict(d::Dictionary) = isempty(d) ? 0 : lastindex(d)
 nextindex(d::Dictionary) = lastindex_dict(d) + 1
 
@@ -149,7 +146,6 @@ end
 
 add_edge!(mesh, src, dst) = add_edge!(mesh, src => dst)
 
-edge_attribute(::Any) = nothing
 mesh_edge(mesh::Mesh, e) = MeshEdge(nextindex(mesh.edges), src(e), dst(e))
 
 src(edge::MeshEdge) = edge.src
@@ -175,7 +171,6 @@ function add_face!(mesh::Mesh, f)
   face
 end
 
-face_attribute(::Any) = nothing
 mesh_face(mesh::Mesh, face) = MeshFace(nextindex(mesh.faces), face_edges(face))
 face_edges(edges::AbstractVector{<:Integer}) = edges
 face_edges(face::MeshFace) = face.edges
@@ -267,13 +262,6 @@ end
 Mesh{VT,ET}(vertices, edges, faces) where {VT,ET} = Mesh{VT,ET,Nothing}(vertices, edges, faces)
 Mesh{VT}(vertices, edges, faces) where {VT} = Mesh{VT,Nothing,Nothing}(vertices, edges, faces)
 Mesh(vertices, edges, faces) = Mesh{Nothing,Nothing,Nothing}(vertices, edges, faces)
-
-location(mesh::Mesh, vertex::MeshVertex) = location(mesh.vertex_attributes[vertex.index])
-location(p::Point) = p
-
-centroid(mesh::Mesh, edge::MeshEdge) = centroid(location(mesh, get_vertex(mesh, edge.src)), location(mesh, get_vertex(mesh, edge.dst)))
-centroid(mesh::Mesh, face::MeshFace) = centroid((location(mesh, vertex) for vertex in vertices(mesh, face)))
-centroid(mesh::Mesh) = centroid((location(mesh, vertex) for vertex in vertices(mesh)))
 
 rem_vertices!(mesh) = rem_vertices!(mesh, collect(vertices(mesh)))
 rem_edges!(mesh) = rem_edges!(mesh, collect(edges(mesh)))
