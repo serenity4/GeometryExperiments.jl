@@ -2,6 +2,7 @@ using GeometryExperiments
 using GeometryExperiments: index
 using Test
 
+const GE = GeometryExperiments
 const P2 = Point2
 const P3 = Point3
 
@@ -190,35 +191,25 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 
     # Direct mutation and utilities.
 
     mesh = quad_mesh()
-    @test length(vertices(mesh)) == 4
-    @test length(edges(mesh)) == 4
-    @test length(faces(mesh)) == 1
+    @test MeshStatistics(mesh) == MeshStatistics(4, 4, 1)
     face = first(faces(mesh))
     @test centroid(mesh, face) ≈ zero(P2)
     @test centroid(mesh) == centroid(mesh, face)
     @test centroid(mesh, first(edges(mesh))) == P2(0, -1)
 
     rem_face!(mesh, first(faces(mesh)))
-    @test length(vertices(mesh)) == 4
-    @test length(edges(mesh)) == 4
-    @test length(faces(mesh)) == 0
+    @test MeshStatistics(mesh) == MeshStatistics(4, 4, 0)
 
     rem_edges!(mesh)
-    @test length(vertices(mesh)) == 4
-    @test length(edges(mesh)) == 0
-    @test length(faces(mesh)) == 0
+    @test MeshStatistics(mesh) == MeshStatistics(4, 0, 0)
     @test all(isempty(vertex.edges) for vertex in vertices(mesh))
 
     rem_vertices!(mesh)
-    @test length(vertices(mesh)) == 0
-    @test length(edges(mesh)) == 0
-    @test length(faces(mesh)) == 0
+    @test MeshStatistics(mesh) == MeshStatistics(0, 0, 0)
 
     mesh = quad_mesh()
     rem_vertices!(mesh)
-    @test length(vertices(mesh)) == 0
-    @test length(edges(mesh)) == 0
-    @test length(faces(mesh)) == 0
+    @test MeshStatistics(mesh) == MeshStatistics(0, 0, 0)
 
     mesh = quad_mesh()
     v = add_vertex!(mesh, P2(0, 0))
@@ -228,10 +219,10 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 
     @test !in(v, vertices(mesh))
 
     mesh = quad_mesh_tri()
-    face = first(mesh.faces)
     @test length(mesh.vertices) == 4 == length(vertices(mesh))
     @test length(mesh.edges) == 5 == length(edges(mesh))
     @test length(mesh.faces) == 2 == length(faces(mesh))
+    face = first(mesh.faces)
     @test centroid(mesh, first(mesh.faces)) == centroid(P2[(-1, -1), (1, -1), (1, 1)])
     @test iszero(centroid(mesh))
 
@@ -246,6 +237,7 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 
     @test MeshStatistics(mesh) == stats
     apply!(diff)
     @test MeshStatistics(mesh) == MeshStatistics(0, 0, 0)
+    # Test that the diff can be reapplied safely (leading to a no-op).
     apply!(diff)
     @test MeshStatistics(mesh) == MeshStatistics(0, 0, 0)
 
@@ -266,6 +258,7 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 
     @test MeshStatistics(mesh) == MeshStatistics(stats.nv + 3, stats.ne + 3, stats.nf + 1)
 
     # Polytope queries.
+
     mesh = quad_mesh_tri()
     f1, f2 = faces(mesh)
     e1, e2, e3, e4, e5 = edges(mesh)
@@ -284,25 +277,44 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 
     @test adjacent_faces(mesh, f1) == [f2]
     @test adjacent_faces(mesh, f2) == [f1]
 
+    mesh = quad_mesh()
+    @test ishomogeneous(mesh)
+    @test allunique(mesh)
+    f = only(faces(mesh))
+    cycle = collect(edge_cycle(mesh, f))
+    @test getindex.(cycle, 3) == collect(edges(mesh, f))
+    @test union(getindex.(cycle, 1), getindex.(cycle, 2)) == vertices(mesh, f)
+    @test all(!, getindex.(cycle, 4))
+
+    mesh = quad_mesh_tri()
+    @test ishomogeneous(mesh)
+    @test allunique(mesh)
+    f1 = first(faces(mesh))
+    cycle = collect(edge_cycle(mesh, f1))
+    @test getindex.(cycle, 3) == collect(edges(mesh, f1))
+    @test union(getindex.(cycle, 1), getindex.(cycle, 2)) == vertices(mesh, f1)
+    @test getindex.(cycle, 4) == [false, false, true]
+
     # Mesh subdivision.
 
     mesh = subdivide!(quad_mesh())
-    @test length(vertices(mesh)) == 9
-    @test length(edges(mesh)) == 12
-    @test length(faces(mesh)) == 4
-    @test all(length(face.edges) == 4 for face in faces(mesh))
-    @test all(!isempty(edge.faces) for edge in edges(mesh))
-    @test all(!isempty(vertex.edges) for vertex in vertices(mesh))
+    @test MeshStatistics(mesh) == MeshStatistics(9, 12, 4)
+    @test all(isquad, faces(mesh))
+    @test ishomogeneous(mesh)
+    @test allunique(mesh)
+    @test length(filter(e -> length(e.faces) == 2, collect(edges(mesh)))) == 4
     @test centroid(mesh) ≈ zero(P2)
 
     for i in 2:5
       # Number of verts, edges and faces for subdivided quads.
       # See https://blender.stackexchange.com/a/15667.
       subdivide!(mesh)
-      @test_broken MeshStatistics(mesh) == MeshStatistics((2^(i + 1) + 2)^2 / 4, 2^i * ((2^(i + 1)) + 2), 4^i)
+      @test MeshStatistics(mesh) == MeshStatistics((2^(i + 1) + 2)^2 / 4, 2^i * ((2^(i + 1)) + 2), 4^i)
     end
 
     @test MeshStatistics(mesh) == MeshStatistics(subdivide!(quad_mesh(), 5))
+    @test ishomogeneous(mesh)
+    @test allunique(mesh)
   end
 
   @testset "Mesh encodings" begin

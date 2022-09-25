@@ -1,29 +1,38 @@
 function subdivide!(mesh::Mesh)
   diff = MeshDiff(mesh)
 
+  processed_edges = Dictionary{MeshEdge,Tuple{MeshVertex,MeshEdge,MeshEdge}}()
+
   for face in faces(mesh)
+    rem_face!(diff, face)
     center_vertex = add_vertex!(diff, centroid(mesh, face))
-    border_vertices = VertexIndex[]
-    edges_from_center = EdgeIndex[]
-    for edge in edges(mesh, face)
-      rem_edge!(diff, edge)
-      midedge_vertex = add_vertex!(diff, centroid(mesh, edge))
-      push!(border_vertices, index(midedge_vertex), dst(edge))
-      new_edge = add_edge!(diff, center_vertex, midedge_vertex)
-      push!(edges_from_center, index(new_edge))
+    final_edges = EdgeIndex[]
+    for (prev, next, edge, swapped) in edge_cycle(mesh, face)
+      if !haskey(processed_edges, edge)
+        rem_edge!(diff, edge)
+        midedge_vertex = add_vertex!(diff, centroid(mesh, edge))
+        e1 = add_edge!(diff, prev, midedge_vertex)
+        e2 = add_edge!(diff, midedge_vertex, next)
+        insert!(processed_edges, edge, (midedge_vertex, e1, e2))
+      else
+        midedge_vertex, e1, e2 = processed_edges[edge]
+        # Swap edges if they were computed in the opposite direction of iteration.
+        if src(e1) == index(next)
+          e1, e2 = e2, e1
+        end
+      end
+      edge_from_center = add_edge!(diff, center_vertex, midedge_vertex)
+      push!(final_edges, index(e1), index(edge_from_center), index(e2))
     end
-    border_edges = map(enumerate(border_vertices)) do (i, v)
-      index(add_edge!(diff, v, border_vertices[mod1(i + 1, end)]))
-    end
-    for i in eachindex(edges_from_center)
+    nf = length(face.edges)
+    for i in 0:(nf - 1)
       add_face!(
         diff,
-        EdgeIndex[
-          edges_from_center[i],
-          border_edges[2i - 1],
-          border_edges[mod1(2i, end)],
-          # Note that this edge should be flipped for a consistent ordering in a directed setting.
-          edges_from_center[mod1(i + 1, end)],
+        [
+          final_edges[3i + 2],
+          final_edges[3i + 3],
+          final_edges[mod1(3i + 4, lastindex(final_edges))],
+          final_edges[mod1(3i + 5, lastindex(final_edges))],
         ],
       )
     end

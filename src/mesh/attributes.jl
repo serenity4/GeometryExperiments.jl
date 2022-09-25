@@ -7,9 +7,9 @@ vertex_attribute(packed::PackedAttribute{MeshVertex}) = packed.attribute
 edge_attribute(packed::PackedAttribute{MeshEdge}) = packed.attribute
 face_attribute(packed::PackedAttribute{MeshFace}) = packed.attribute
 
-mesh_vertex(packed::PackedAttribute{MeshVertex}) = packed.element
-mesh_edge(packed::PackedAttribute{MeshEdge}) = packed.element
-mesh_face(packed::PackedAttribute{MeshFace}) = packed.element
+mesh_vertex(::Mesh, packed::PackedAttribute{MeshVertex}) = packed.element
+mesh_edge(::Mesh, packed::PackedAttribute{MeshEdge}) = packed.element
+mesh_face(::Mesh, packed::PackedAttribute{MeshFace}) = packed.element
 
 index(packed::PackedAttribute) = index(packed.element)
 src(packed::PackedAttribute{MeshEdge}) = src(packed.element)

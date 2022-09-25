@@ -43,9 +43,9 @@ The associated surface needs not be manifold; there can be dangling edges, lone
 vertices, and faces linked only by a single vertex.
 """
 struct Mesh{VT,ET,FT}
-  vertices::GranularVector{MeshVertex}
-  edges::GranularVector{MeshEdge}
-  faces::GranularVector{MeshFace}
+  vertices::GranularVector{MeshVertex,Vector{Union{MeshVertex,Nothing}}}
+  edges::GranularVector{MeshEdge,Vector{Union{MeshEdge,Nothing}}}
+  faces::GranularVector{MeshFace,Vector{Union{MeshFace,Nothing}}}
   # Use a dictionary to allow for missing attributes.
   vertex_attributes::Dictionary{VertexIndex,VT}
   edge_attributes::Dictionary{EdgeIndex,ET}
@@ -117,6 +117,7 @@ add_edge!(vertex::MeshVertex, edge::MeshEdge) = push!(vertex.edges, edge.index)
 add_edge!(face::MeshFace, edge::MeshEdge) = push!(face.edges, edge.index)
 
 function add_edge!(mesh::Mesh, edge::MeshEdge)
+  edge.src ≠ edge.dst || error("Mesh edges must link different vertices.")
   insert!(mesh.edges, edge.index, edge)
   src = mesh.vertices[edge.src]
   add_edge!(src, edge)
@@ -129,7 +130,62 @@ end
 
 add_face!(edge::MeshEdge, face::MeshFace) = push!(edge.faces, face.index)
 
+"""
+Make sure that edges specified in the face form a cycle.
+
+If they don't form a cycle originally, then edges will be reordered
+so that a cycle can be formed with all edges; otherwise, an error will be thrown.
+"""
+function ensure_cyclic_edges!(face::MeshFace, mesh::Mesh)
+  chain_start = src(mesh.edges[first(face.edges)])
+  chain_prev = chain_start
+  for i in eachindex(face.edges)
+    edge = mesh.edges[face.edges[i]]
+    if src(edge) == chain_prev
+      chain_prev = dst(edge)::Int
+    elseif dst(edge) == chain_prev
+      chain_prev = src(edge)::Int
+    else
+      #=
+      For some reason, the following code makes type inference produce a `Core.Box` for `chain_prev`,
+      even though `chain_prev` is never reassigned.
+      j = findfirst(@view(face.edges[(i + 1):end])) do j
+        e = mesh.edges[j]
+        in(chain_prev, (src(e), dst(e)))
+      end
+
+      The following loop is identical to the above.
+      =#
+      j = nothing
+      for (k, edge_index) in enumerate(@view(face.edges[(i + 1):end]))
+        e = mesh.edges[edge_index]
+        if in(chain_prev, (src(e), dst(e)))
+          j = k
+          break
+        end
+      end
+
+      if isnothing(j)
+        error(
+          "Acyclic edge structure detected for face $face; the corresponding edges in the provided mesh must form a boundary representation of the face.",
+        )
+      end
+      j += i
+      edge = mesh.edges[@inbounds face.edges[j]]
+      chain_prev = src(edge) == chain_prev ? dst(edge) : src(edge)
+      face.edges[i], face.edges[j] = face.edges[j], face.edges[i]
+    end
+    chain_prev == chain_start && i ≠ lastindex(face.edges) &&
+      error(
+        "Edge cycle ending with $edge (on vertex $chain_start) detected before all face edges could be traversed for face $face. Number of edges traversed: $i out of $(length(face.edges)).",
+      )
+  end
+end
+
 function add_face!(mesh::Mesh, face::MeshFace)
+  length(face.edges) > 2 ||
+    error("Invalid number of edges for face $face ($(length(face.edges)) edges). Mesh faces must contain three edges or more.")
+  ensure_cyclic_edges!(face, mesh)
   insert!(mesh.faces, face.index, face)
   for edge in edges(mesh, face)
     add_face!(edge, face)
@@ -138,6 +194,7 @@ end
 
 function add_vertex!(mesh::Mesh, v)
   vertex = mesh_vertex(mesh, v)
+  !isassigned(mesh.vertices, index(vertex)) || error("Vertex at index $(index(vertex)) is already defined.")
   add_vertex!(mesh, vertex)
   attr = vertex_attribute(v)
   !isnothing(attr) && insert!(mesh.vertex_attributes, vertex.index, attr)
@@ -148,6 +205,7 @@ mesh_vertex(mesh::Mesh, ::Any) = MeshVertex(nextind!(mesh.vertices))
 
 function add_edge!(mesh::Mesh, e)
   edge = mesh_edge(mesh, e)
+  !isassigned(mesh.edges, index(edge)) || error("Edge at index $(index(edge)) is already defined.")
   add_edge!(mesh, edge)
   attr = edge_attribute(e)
   !isnothing(attr) && insert!(mesh.edge_attributes, edge.index, attr)
@@ -156,7 +214,7 @@ end
 
 add_edge!(mesh, src, dst) = add_edge!(mesh, src => dst)
 
-mesh_edge(mesh::Mesh, e) = MeshEdge(nextind!(mesh.edges), src(e), dst(e))
+mesh_edge(mesh::Mesh, edge) = MeshEdge(nextind!(mesh.edges), src(edge), dst(edge))
 
 src(edge::MeshEdge) = edge.src
 dst(edge::MeshEdge) = edge.dst
@@ -175,6 +233,7 @@ end
 
 function add_face!(mesh::Mesh, f)
   face = mesh_face(mesh, f)
+  !isassigned(mesh.faces, index(face)) || error("Face at index $(index(face)) is already defined.")
   add_face!(mesh, face)
   attr = face_attribute(f)
   !isnothing(attr) && insert!(mesh.face_attributes, face.index, attr)
@@ -298,4 +357,28 @@ MeshStatistics(mesh) = MeshStatistics(nv(mesh), ne(mesh), nf(mesh))
 
 function Base.show(io::IO, mesh::Mesh)
   print(io, typeof(mesh), "(", nv(mesh), " vertices, ", ne(mesh), " edges, ", nf(mesh), " faces)")
+end
+
+"""
+Check whether the mesh has duplicate elements.
+"""
+function Base.allunique(mesh::Mesh)
+  (allunique(index(v) for v in vertices(mesh)) && allunique(location(mesh, v) for v in vertices(mesh))) || return true
+  allunique(index(e) for e in edges(mesh)) || return true
+  allunique(index(f) for f in faces(mesh)) || return true
+end
+
+function ishomogeneous(mesh::Mesh)
+  all(!isempty(edge.faces) for edge in edges(mesh)) && all(!isempty(vertex.edges) for vertex in vertices(mesh))
+end
+
+isquad(face::MeshFace) = length(face.edges) == 4
+istri(face::MeshFace) = length(face.edges) == 3
+
+"""
+Return whether the mesh represents the boundary of a 3-dimensional volume, i.e.
+it is homogeneously made of connected faces and there is no boundary (every edge is attached to exactly two faces).
+"""
+function ismanifold(mesh::Mesh)
+  ishomogeneous(mesh) && all(length(edge.faces) == 2 for edge in edges(mesh))
 end

@@ -33,6 +33,7 @@ include("granular_vector.jl")
 include("mesh.jl")
 include("mesh/attributes.jl")
 include("mesh/diff.jl")
+include("mesh/iteration.jl")
 include("mesh/encodings.jl")
 include("mesh/subdivide.jl")
 
@@ -82,6 +83,8 @@ export
   # meshes
   Polytope,
   Mesh, MeshDiff, MeshStatistics,
+  ishomogeneous, ismanifold,
+  isquad, istri,
   location,
   vertices, adjacent_vertices,
   edges,
@@ -93,6 +96,7 @@ export
   MeshVertex, MeshEdge, MeshFace,
   nv, ne, nf,
   apply!,
+  edge_cycle,
   PrimitiveTopology,
   LinePrimitive, TrianglePrimitive,
   IndexEncoding,

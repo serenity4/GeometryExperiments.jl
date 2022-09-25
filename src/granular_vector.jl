@@ -167,10 +167,8 @@ end
 Base.getindex(gview::GranularVectorView, index) = getindex(gview.parent, gview.indices[index])
 Base.setindex!(gview::GranularVectorView, value, index) = setindex!(gview.parent, value, gview.indices[index])
 
-Base.iterate(gview::GranularVectorView) = iterate(gview, 1)
-
-function Base.iterate(gview::GranularVectorView, i::Integer)
-  length(gview.indices) ≥ i || return nothing
+function Base.iterate(gview::GranularVectorView, i::Integer = 1)
+  i > length(gview.indices) && return nothing
   index = gview.indices[i]
   isdefined(gview.parent, index) || return iterate(gview, i + 1)
   (gview.parent[index], i + 1)
