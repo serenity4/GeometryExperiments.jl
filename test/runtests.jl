@@ -1,8 +1,12 @@
 using GeometryExperiments
+using GeometryExperiments: index
 using Test
 
 const P2 = Point2
 const P3 = Point3
+
+quad_mesh() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 3), (3, 4), (4, 1)], [[1, 2, 3, 4]])
+quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 3), (3, 4), (4, 1), (1, 3)], [[1, 2, 5], [3, 4, 5]])
 
 @testset "GeometryExperiments.jl" begin
   @testset "Basic transforms" begin
@@ -183,8 +187,6 @@ const P3 = Point3
   include("granular_vector.jl")
 
   @testset "Meshes" begin
-    quad_mesh() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 3), (3, 4), (4, 1)], [[1, 2, 3, 4]])
-
     # Direct mutation and utilities.
 
     mesh = quad_mesh()
@@ -225,10 +227,10 @@ const P3 = Point3
     rem_vertex!(mesh, v)
     @test !in(v, vertices(mesh))
 
-    mesh = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 3), (3, 1), (2, 3), (3, 4), (4, 2)], [[1, 2, 3], [4, 5, 6]])
+    mesh = quad_mesh_tri()
     face = first(mesh.faces)
     @test length(mesh.vertices) == 4 == length(vertices(mesh))
-    @test length(mesh.edges) == 6 == length(edges(mesh))
+    @test length(mesh.edges) == 5 == length(edges(mesh))
     @test length(mesh.faces) == 2 == length(faces(mesh))
     @test centroid(mesh, first(mesh.faces)) == centroid(P2[(-1, -1), (1, -1), (1, 1)])
     @test iszero(centroid(mesh))
@@ -262,6 +264,25 @@ const P3 = Point3
     @test MeshStatistics(mesh) == MeshStatistics(stats.nv + 3, stats.ne + 3, stats.nf + 1)
     apply!(diff)
     @test MeshStatistics(mesh) == MeshStatistics(stats.nv + 3, stats.ne + 3, stats.nf + 1)
+
+    # Polytope queries.
+    mesh = quad_mesh_tri()
+    f1, f2 = faces(mesh)
+    e1, e2, e3, e4, e5 = edges(mesh)
+    v1, v2, v3, v4 = vertices(mesh)
+    @test collect(edges(mesh, f1)) == [e1, e2, e5]
+    @test collect(edges(mesh, f2)) == [e3, e4, e5]
+    @test vertices(mesh, e1) == (v1, v2)
+    @test vertices(mesh, e2) == (v2, v3)
+    @test vertices(mesh, e3) == (v3, v4)
+    @test vertices(mesh, e4) == (v4, v1)
+    @test vertices(mesh, e5) == (v1, v3)
+    @test vertices(mesh, f1) == [v1, v2, v3]
+    @test vertices(mesh, f2) == [v3, v4, v1]
+    @test adjacent_vertices(mesh, v1) == [v2, v4, v3]
+    @test adjacent_vertices(mesh, v2) == [v1, v3]
+    @test adjacent_faces(mesh, f1) == [f2]
+    @test adjacent_faces(mesh, f2) == [f1]
 
     # Mesh subdivision.
 

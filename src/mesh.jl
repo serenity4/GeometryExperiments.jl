@@ -1,10 +1,12 @@
 #=
 
-Interestingly enough, this implementation coincidentally converged to an almost identical version of the Adjacency and Incidence Framework,
-with the minor exception that attributes (such as position and normals) are stored outside the related
-elements themselves, and that these attributes can be defined on edges and faces (and not exclusively on vertices).
+Interestingly enough, this implementation coincidentally converged to one semantically equivalent to that of the Adjacency and Incidence Framework,
+with the difference that indices are stored instead the structures themselves, that attributes (such as position and normals) are stored outside the related
+elements themselves, and that these attributes can be defined on edges and faces (and not exclusively on vertices). In this regard, it is similar to
+the Vectorized Topology Representation (VTR) used by OpenSubdiv; however, unlike VTR, there is no intent for data parallelism and less pre-baked information
+is available, being better suited for representing arbitrary meshes in such a way to allow edits to be performed efficiently and in all generality.
 
-See the following paper by Frutuoso G. M. Silva and Abel J. P. Gomes for more information: Adjacency and Incidence Framework - A data structure for efficient and fast management of multiresolution meshes.
+See a description of VTR at https://graphics.pixar.com/opensubdiv/docs/vtr_overview.html and the following paper by Frutuoso G. M. Silva and Abel J. P. Gomes for more information: Adjacency and Incidence Framework - A data structure for efficient and fast management of multiresolution meshes.
 
 =#
 
@@ -67,24 +69,43 @@ vertices(mesh::Mesh) = mesh.vertices
 edges(mesh::Mesh) = mesh.edges
 faces(mesh::Mesh) = mesh.faces
 
-function adjacent_faces(mesh::Mesh, face::MeshFace)
-  faces = MeshFace[]
-  for edge in edges(mesh, face)
-    for f in faces(mesh, edge)
-      f ≠ face && push!(faces, f)
+function adjacent_vertices(mesh::Mesh, vertex::MeshVertex)
+  ret = MeshVertex[]
+  for edge in edges(mesh, vertex)
+    for v in vertices(mesh, edge)
+      v !== vertex && fast_union!(ret, v)
     end
   end
-  faces
+  ret
+end
+
+function adjacent_faces(mesh::Mesh, face::MeshFace)
+  ret = MeshFace[]
+  for edge in edges(mesh, face)
+    for f in faces(mesh, edge)
+      f !== face && push!(ret, f)
+    end
+  end
+  ret
 end
 
 vertices(mesh::Mesh, edge::MeshEdge) = (mesh.vertices[edge.src], mesh.vertices[edge.dst])
 
-function vertices(mesh::Mesh, face::MeshFace)
-  vertices = MeshVertex[]
-  for edge in edges(mesh, face)
-    push!(vertices, mesh.vertices[edge.src])
+function fast_union!(x::AbstractVector, y)
+  for val in y
+    in(val, x) || push!(x, val)
   end
-  vertices
+  x
+end
+
+fast_union!(x::AbstractVector{T}, ys::T...) where {T} = fast_union!(x, ys)
+
+function vertices(mesh::Mesh, face::MeshFace)
+  ret = MeshVertex[]
+  for edge in edges(mesh, face)
+    fast_union!(ret, vertices(mesh, edge))
+  end
+  ret
 end
 
 function add_vertex!(mesh::Mesh, vertex::MeshVertex)
