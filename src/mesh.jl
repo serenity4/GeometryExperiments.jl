@@ -167,7 +167,10 @@ function ensure_cyclic_edges!(face::MeshFace, mesh::Mesh)
 
       if isnothing(j)
         error(
-          "Acyclic edge structure detected for face $face; the corresponding edges in the provided mesh must form a boundary representation of the face.",
+          """
+          Acyclic edge structure detected for face $face; the corresponding edges in the provided mesh must form a boundary representation of the face.
+          Face edges: $(collect(edges(mesh, face)))
+          """,
         )
       end
       j += i

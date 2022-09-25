@@ -11,3 +11,8 @@ using BenchmarkTools
 
 mesh = quad_mesh_tri()
 @btime ensure_cyclic_edges!(face, $mesh) setup = face = MeshFace(3, [1, 3, 4, 2])
+
+@btime subdivide!(mesh) evals = 1 setup = mesh = quad_mesh()
+@btime subdivide!(mesh, 3) evals = 1 setup = mesh = quad_mesh()
+@btime subdivide!(mesh, 5) evals = 1 setup = mesh = quad_mesh()
+@btime subdivide!(mesh, 7) evals = 1 setup = mesh = quad_mesh()

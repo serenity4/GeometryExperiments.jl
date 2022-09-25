@@ -315,6 +315,14 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 
     @test MeshStatistics(mesh) == MeshStatistics(subdivide!(quad_mesh(), 5))
     @test ishomogeneous(mesh)
     @test allunique(mesh)
+
+    # Mesh triangulation.
+
+    mesh = quad_mesh()
+    triangulate!(mesh)
+    @test all(istri, faces(mesh))
+    @test ishomogeneous(mesh)
+    @test allunique(mesh)
   end
 
   @testset "Mesh encodings" begin

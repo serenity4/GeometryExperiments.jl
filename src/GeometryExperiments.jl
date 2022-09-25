@@ -36,6 +36,7 @@ include("mesh/diff.jl")
 include("mesh/iteration.jl")
 include("mesh/encodings.jl")
 include("mesh/subdivide.jl")
+include("mesh/triangulate.jl")
 
 export
   Point,
@@ -104,7 +105,7 @@ export
   TriangleStrip, TriangleFan, TriangleList,
   LineStrip, LineList,
   VertexMesh,
-  subdivide!
+  subdivide!, triangulate!
 
 
 end # module
