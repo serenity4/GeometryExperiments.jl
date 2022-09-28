@@ -6,7 +6,23 @@ const GE = GeometryExperiments
 const P2 = Point2
 const P3 = Point3
 
+struct PosUV{P<:Point}
+  pos::P
+  uv::P2
+end
+
+GeometryExperiments.location(attr::PosUV) = attr.pos
+GeometryExperiments.vertex_attribute(attr::PosUV) = attr
+Base.:(+)(p1::PosUV, p2::PosUV) = PosUV(p1.pos + p2.pos, p1.uv + p2.uv)
+Base.:(*)(p::PosUV, w::Float64) = PosUV(p.pos .* w, p.uv .* w)
+
 quad_mesh() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 3), (3, 4), (4, 1)], [[1, 2, 3, 4]])
+quad_mesh_uv() =
+  Mesh{PosUV{P2}}(
+    PosUV.(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], P2[(0, 0), (1, 0), (1, 1), (0, 1)]),
+    [(1, 2), (2, 3), (3, 4), (4, 1)],
+    [[1, 2, 3, 4]],
+  )
 quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 3), (3, 4), (4, 1), (1, 3)], [[1, 2, 5], [3, 4, 5]])
 
 @testset "GeometryExperiments.jl" begin
@@ -226,6 +242,9 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 
     @test centroid(mesh, first(mesh.faces)) == centroid(P2[(-1, -1), (1, -1), (1, 1)])
     @test iszero(centroid(mesh))
 
+    mesh_uv = quad_mesh_uv()
+    @test centroid(mesh_uv) ≈ zero(P2)
+
     # Transactional mutation.
 
     mesh = quad_mesh()
@@ -315,6 +334,12 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 
     @test MeshStatistics(mesh) == MeshStatistics(subdivide!(quad_mesh(), 5))
     @test ishomogeneous(mesh)
     @test allunique(mesh)
+
+    mesh_uv = subdivide!(quad_mesh_uv())
+    @test MeshStatistics(mesh_uv) == MeshStatistics(9, 12, 4)
+    @test centroid(mesh_uv) ≈ zero(P2)
+    # New vertices will have at least one non-integer UV component.
+    @test length(filter(attr -> !iszero(attr.uv .% 1), mesh_uv.vertex_attributes)) == 5
 
     # Mesh triangulation.
 

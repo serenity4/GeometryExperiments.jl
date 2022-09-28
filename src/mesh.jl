@@ -61,6 +61,10 @@ struct Mesh{VT,ET,FT}
     )
 end
 
+attribute(mesh::Mesh, vertex::MeshVertex) = mesh.vertex_attributes[index(vertex)]
+attribute(mesh::Mesh, edge::MeshEdge) = mesh.edge_attributes[index(edge)]
+attribute(mesh::Mesh, face::MeshFace) = mesh.face_attributes[index(face)]
+
 edges(mesh::Mesh, vertex::MeshVertex) = view(mesh.edges, vertex.edges)
 edges(mesh::Mesh, face::MeshFace) = view(mesh.edges, face.edges)
 faces(mesh::Mesh, edge::MeshEdge) = view(mesh.faces, edge.faces)
@@ -385,3 +389,7 @@ it is homogeneously made of connected faces and there is no boundary (every edge
 function ismanifold(mesh::Mesh)
   ishomogeneous(mesh) && all(length(edge.faces) == 2 for edge in edges(mesh))
 end
+
+ne(face::MeshFace) = length(face.edges)
+nv(face::MeshFace) = ne(face)
+nv(edge::MeshEdge) = 2

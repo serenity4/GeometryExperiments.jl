@@ -5,12 +5,15 @@ function subdivide!(mesh::Mesh)
 
   for face in faces(mesh)
     rem_face!(diff, face)
-    center_vertex = add_vertex!(diff, centroid(mesh, face))
+    n = nv(face)
+    center_attribute = linear_combination((attribute(mesh, v) for v in vertices(mesh, face)), ntuple(Returns(1.0 / n), n))
+    center_vertex = add_vertex!(diff, center_attribute)
     final_edges = EdgeIndex[]
     for (prev, next, edge, swapped) in edge_cycle(mesh, face)
       if !haskey(processed_edges, edge)
         rem_edge!(diff, edge)
-        midedge_vertex = add_vertex!(diff, centroid(mesh, edge))
+        midedge_attribute = interpolate_linear(mesh.vertex_attributes[src(edge)], mesh.vertex_attributes[dst(edge)], 0.5)
+        midedge_vertex = add_vertex!(diff, midedge_attribute)
         e1 = add_edge!(diff, prev, midedge_vertex)
         e2 = add_edge!(diff, midedge_vertex, next)
         insert!(processed_edges, edge, (midedge_vertex, e1, e2))
@@ -47,3 +50,6 @@ function subdivide!(mesh, iterations::Integer)
   end
   mesh
 end
+
+interpolate_linear(p1, p2, t) = p1 * (1 - t) + p2 * t
+linear_combination(ps, ts) = sum(p * t for (p, t) in zip(ps, ts))
