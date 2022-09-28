@@ -13,9 +13,16 @@ struct EdgeIterator{M<:Mesh}
   face::MeshFace
 end
 
+struct TraversedEdge
+  prev::MeshVertex
+  next::MeshVertex
+  edge::MeshEdge
+  swapped::Bool
+end
+
 function Base.iterate((; mesh, face)::EdgeIterator)
   edge = mesh.edges[first(face.edges)]
-  val = (vertices(mesh, edge)..., edge, false)
+  val = TraversedEdge(vertices(mesh, edge)..., edge, false)
   state = (2, dst(edge), edge)
   (val, state)
 end
@@ -24,19 +31,19 @@ function Base.iterate((; mesh, face)::EdgeIterator, (i, prev, edge))
   i > length(face.edges) && return nothing
   next_edge = mesh.edges[face.edges[i]]
   if src(next_edge) == index(prev)
-    val = (vertices(mesh, next_edge)..., next_edge, false)
+    val = TraversedEdge(vertices(mesh, next_edge)..., next_edge, false)
   elseif dst(next_edge) == index(prev)
-    val = (reverse(vertices(mesh, next_edge))..., next_edge, true)
+    val = TraversedEdge(reverse(vertices(mesh, next_edge))..., next_edge, true)
   else
     error(
       "Edge $next_edge disconnected from previous vertex $prev from edge $edge for face $face. The face either does not contain a cycle of edges or does so out of order.",
     )
   end
-  state = (i + 1, val[2], next_edge)
+  state = (i + 1, val.next, next_edge)
   (val, state)
 end
 
 Base.length(it::EdgeIterator) = length(it.face.edges)
-Base.eltype(::Type{<:EdgeIterator}) = Tuple{MeshVertex,MeshVertex,MeshEdge,Bool}
+Base.eltype(::Type{<:EdgeIterator}) = TraversedEdge
 
 edge_cycle(mesh::Mesh, face::MeshFace) = EdgeIterator(mesh, face)

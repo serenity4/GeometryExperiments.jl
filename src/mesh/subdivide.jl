@@ -26,7 +26,7 @@ end
 function connect_face_center!!(diff::MeshDiff, processed_edges, face::MeshFace, center::MeshVertex)
   (; mesh) = diff
   final_edges = EdgeIndex[]
-  for (prev, next, edge, swapped) in edge_cycle(mesh, face)
+  for (; prev, next, edge, swapped) in edge_cycle(mesh, face)
     if !haskey(processed_edges, edge)
       rem_edge!(diff, edge)
       midedge_attribute = interpolate_linear(mesh.vertex_attributes[src(edge)], mesh.vertex_attributes[dst(edge)], 0.5)
@@ -58,7 +58,8 @@ function connect_face_center!!(diff::MeshDiff, processed_edges, face::MeshFace, 
   end
 end
 
-subdivide!(mesh::Mesh, alg = UniformSubdivision(1)) = apply!(mesh, alg)
+subdivide!(mesh::Mesh, alg::SubdivisionAlgorithm = UniformSubdivision(1)) = apply!(mesh, alg)
+subdivide!(mesh::Mesh, iterations::Integer) = apply!(mesh, UniformSubdivision(iterations))
 
 function apply!(mesh::Mesh, alg::SubdivisionAlgorithm)
   for _ in 1:(alg.iterations)

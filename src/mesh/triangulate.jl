@@ -13,8 +13,8 @@ end
 
 function triangulate_quad!(diff::MeshDiff, face::MeshFace)
   rem_face!(diff, face)
-  e1, e2, e3, e4 = edges(diff.mesh, face)
-  e5 = add_edge!(diff, dst(e1), dst(e2))
-  add_face!(diff, [e1, e2, e5])
-  add_face!(diff, [e5, e3, e4])
+  c1, c2, c3, c4 = collect(edge_cycle(diff.mesh, face))
+  e5 = add_edge!(diff, c2.next, c4.next)
+  add_face!(diff, [c1.edge, c2.edge, e5])
+  add_face!(diff, [e5, c3.edge, c4.edge])
 end

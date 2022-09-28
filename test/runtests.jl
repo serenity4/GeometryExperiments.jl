@@ -301,18 +301,18 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 
     @test allunique(mesh)
     f = only(faces(mesh))
     cycle = collect(edge_cycle(mesh, f))
-    @test getindex.(cycle, 3) == collect(edges(mesh, f))
-    @test union(getindex.(cycle, 1), getindex.(cycle, 2)) == vertices(mesh, f)
-    @test all(!, getindex.(cycle, 4))
+    @test getproperty.(cycle, :edge) == collect(edges(mesh, f))
+    @test union(getproperty.(cycle, :prev), getproperty.(cycle, :next)) == vertices(mesh, f)
+    @test all(!, getproperty.(cycle, :swapped))
 
     mesh = quad_mesh_tri()
     @test ishomogeneous(mesh)
     @test allunique(mesh)
     f1 = first(faces(mesh))
     cycle = collect(edge_cycle(mesh, f1))
-    @test getindex.(cycle, 3) == collect(edges(mesh, f1))
-    @test union(getindex.(cycle, 1), getindex.(cycle, 2)) == vertices(mesh, f1)
-    @test getindex.(cycle, 4) == [false, false, true]
+    @test getproperty.(cycle, :edge) == collect(edges(mesh, f1))
+    @test union(getproperty.(cycle, :prev), getproperty.(cycle, :next)) == vertices(mesh, f1)
+    @test getproperty.(cycle, :swapped) == [false, false, true]
 
     # Mesh subdivision.
 
@@ -340,6 +340,9 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 
     @test centroid(mesh_uv) ≈ zero(P2)
     # New vertices will have at least one non-integer UV component.
     @test length(filter(attr -> !iszero(attr.uv .% 1), mesh_uv.vertex_attributes)) == 5
+    @test ishomogeneous(mesh_uv)
+    mesh_uv = subdivide!(quad_mesh_uv(), 3)
+    @test ishomogeneous(mesh_uv)
 
     # Mesh triangulation.
 
@@ -348,6 +351,11 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 
     @test all(istri, faces(mesh))
     @test ishomogeneous(mesh)
     @test allunique(mesh)
+
+    mesh_uv = subdivide!(quad_mesh_uv(), 3)
+    triangulate!(mesh_uv)
+    @test ishomogeneous(mesh_uv)
+    @test all(istri, faces(mesh_uv))
   end
 
   @testset "Mesh encodings" begin
