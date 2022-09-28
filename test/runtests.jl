@@ -16,14 +16,15 @@ GeometryExperiments.vertex_attribute(attr::PosUV) = attr
 Base.:(+)(p1::PosUV, p2::PosUV) = PosUV(p1.pos + p2.pos, p1.uv + p2.uv)
 Base.:(*)(p::PosUV, w::Float64) = PosUV(p.pos .* w, p.uv .* w)
 
-quad_mesh() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 3), (3, 4), (4, 1)], [[1, 2, 3, 4]])
+quad_mesh() = Mesh{P2}(P2[(-1, -1), (-1, 1), (1, 1), (1, -1)], [(1, 2), (2, 3), (3, 4), (4, 1)], [[1, 2, 3, 4]])
+quad_mesh_ccw() = Mesh{P2}(P2[(-1, -1), (-1, 1), (1, 1), (1, -1)], [(1, 2), (2, 3), (3, 4), (4, 1)], [[1, 4, 3, 2]])
 quad_mesh_uv() =
   Mesh{PosUV{P2}}(
-    PosUV.(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], P2[(0, 0), (1, 0), (1, 1), (0, 1)]),
+    PosUV.(P2[(-1, -1), (-1, 1), (1, 1), (1, -1)], P2[(0, 0), (1, 0), (1, 1), (0, 1)]),
     [(1, 2), (2, 3), (3, 4), (4, 1)],
     [[1, 2, 3, 4]],
   )
-quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 3), (3, 4), (4, 1), (1, 3)], [[1, 2, 5], [3, 4, 5]])
+quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (-1, 1), (1, 1), (1, -1)], [(1, 2), (2, 3), (3, 4), (4, 1), (1, 3)], [[1, 2, 5], [3, 4, 5]])
 
 @testset "GeometryExperiments.jl" begin
   @testset "Basic transforms" begin
@@ -211,7 +212,8 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 
     face = first(faces(mesh))
     @test centroid(mesh, face) ≈ zero(P2)
     @test centroid(mesh) == centroid(mesh, face)
-    @test centroid(mesh, first(edges(mesh))) == P2(0, -1)
+    @test centroid(mesh, first(edges(mesh))) == P2(-1, 0)
+    @test orientation(mesh, face) == orientation(mesh) == FACE_ORIENTATION_CLOCKWISE
 
     rem_face!(mesh, first(faces(mesh)))
     @test MeshStatistics(mesh) == MeshStatistics(4, 4, 0)
@@ -235,11 +237,12 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 
     @test !in(v, vertices(mesh))
 
     mesh = quad_mesh_tri()
+    @test orientation(mesh) == FACE_ORIENTATION_CLOCKWISE
     @test length(mesh.vertices) == 4 == length(vertices(mesh))
     @test length(mesh.edges) == 5 == length(edges(mesh))
     @test length(mesh.faces) == 2 == length(faces(mesh))
     face = first(mesh.faces)
-    @test centroid(mesh, first(mesh.faces)) == centroid(P2[(-1, -1), (1, -1), (1, 1)])
+    @test centroid(mesh, first(mesh.faces)) == centroid(P2[(-1, -1), (-1, 1), (1, 1)])
     @test iszero(centroid(mesh))
 
     mesh_uv = quad_mesh_uv()
@@ -344,18 +347,36 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 
     mesh_uv = subdivide!(quad_mesh_uv(), 3)
     @test ishomogeneous(mesh_uv)
 
+    for mesh in (quad_mesh(), quad_mesh_ccw(), quad_mesh_tri(), quad_mesh_uv())
+      orient = orientation(mesh)
+      @test !isnothing(orient)
+      subdivide!(mesh, 1)
+      @test ishomogeneous(mesh_ccw)
+      @test orientation(mesh) === orient
+      subdivide!(mesh, 1)
+      @test ishomogeneous(mesh_ccw)
+      @test orientation(mesh) === orient
+    end
+
     # Mesh triangulation.
 
     mesh = quad_mesh()
+    orient = orientation(mesh)
     triangulate!(mesh)
     @test all(istri, faces(mesh))
     @test ishomogeneous(mesh)
     @test allunique(mesh)
+    @test orientation(mesh) === orient
+    nonorientable_faces(mesh)
+    face_orientations(mesh)
+    location.(Ref(mesh), vertices(mesh))
 
     mesh_uv = subdivide!(quad_mesh_uv(), 3)
+    orient = orientation(mesh_uv)
     triangulate!(mesh_uv)
     @test ishomogeneous(mesh_uv)
     @test all(istri, faces(mesh_uv))
+    @test orientation(mesh_uv) === orient
   end
 
   @testset "Mesh encodings" begin

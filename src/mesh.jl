@@ -141,14 +141,27 @@ If they don't form a cycle originally, then edges will be reordered
 so that a cycle can be formed with all edges; otherwise, an error will be thrown.
 """
 function ensure_cyclic_edges!(face::MeshFace, mesh::Mesh)
-  chain_start = src(mesh.edges[first(face.edges)])
+  # Figure out which vertex to start from based on the first, second and last edges.
+  first_edge = mesh.edges[first(face.edges)]
+  second_edge = mesh.edges[face.edges[2]]
+  last_edge = mesh.edges[last(face.edges)]
+  chain_start = if in(src(first_edge), (src(last_edge), dst(last_edge)))
+    if in(dst(first_edge), (src(second_edge), dst(second_edge)))
+      src(first_edge)
+    else
+      dst(first_edge)
+    end
+  else
+    dst(first_edge)
+  end
+
   chain_prev = chain_start
   for i in eachindex(face.edges)
     edge = mesh.edges[face.edges[i]]
     if src(edge) == chain_prev
-      chain_prev = dst(edge)::Int
+      chain_prev = dst(edge)
     elseif dst(edge) == chain_prev
-      chain_prev = src(edge)::Int
+      chain_prev = src(edge)
     else
       #=
       For some reason, the following code makes type inference produce a `Core.Box` for `chain_prev`,

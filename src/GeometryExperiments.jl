@@ -98,6 +98,8 @@ export
   nv, ne, nf,
   apply!,
   edge_cycle,
+  orientation, FaceOrientation, FACE_ORIENTATION_CLOCKWISE, FACE_ORIENTATION_COUNTERCLOCKWISE,
+  nonorientable_faces, face_orientations,
   PrimitiveTopology,
   LinePrimitive, TrianglePrimitive,
   IndexEncoding,
