@@ -331,7 +331,7 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (1, -1), (1, 1), (-1, 1)], [(1, 2), (2, 
       @test MeshStatistics(mesh) == MeshStatistics((2^(i + 1) + 2)^2 / 4, 2^i * ((2^(i + 1)) + 2), 4^i)
     end
 
-    @test MeshStatistics(mesh) == MeshStatistics(subdivide!(quad_mesh(), 5))
+    @test MeshStatistics(mesh) == MeshStatistics(subdivide!(quad_mesh(), UniformSubdivision(5)))
     @test ishomogeneous(mesh)
     @test allunique(mesh)
 

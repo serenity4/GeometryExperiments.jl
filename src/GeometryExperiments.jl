@@ -105,6 +105,7 @@ export
   TriangleStrip, TriangleFan, TriangleList,
   LineStrip, LineList,
   VertexMesh,
+  SubdivisionAlgorithm, UniformSubdivision,
   subdivide!, triangulate!
 
 
