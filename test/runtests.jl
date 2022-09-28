@@ -351,10 +351,10 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (-1, 1), (1, 1), (1, -1)], [(1, 2), (2, 
       orient = orientation(mesh)
       @test !isnothing(orient)
       subdivide!(mesh, 1)
-      @test ishomogeneous(mesh_ccw)
+      @test ishomogeneous(mesh)
       @test orientation(mesh) === orient
       subdivide!(mesh, 1)
-      @test ishomogeneous(mesh_ccw)
+      @test ishomogeneous(mesh)
       @test orientation(mesh) === orient
     end
 
