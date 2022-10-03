@@ -2,7 +2,7 @@ struct Translation{Dim,T} <: Transform
   vec::Point{Dim,T}
 end
 Translation(vals::T...) where {T} = Translation(Point{length(vals),T}(vals))
-Translation(vec::AbstractVector) where {Dim,T} = Translation(Point{length(vec),eltype(vec)}(vals))
+Translation(vec::AbstractVector) = Translation(Point{length(vec),eltype(vec)}(vals))
 (t::Translation)(p::AbstractVector) = t.vec + p
 (t::Translation{Dim})(x::Number) where {Dim} = t(@SVector fill(x, Dim))
 

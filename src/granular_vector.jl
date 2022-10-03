@@ -40,7 +40,7 @@ inrange(gvec::GranularVector, index) = in(index, first(axes(gvec.vec)))
 isdefined(gvec::GranularVector, index) = !isnothing(gvec.vec[index])
 Base.isassigned(gvec::GranularVector, index::Integer) = inrange(gvec, index) && isdefined(gvec, index)
 
-function Base.setindex!(gvec::GranularVector, val, i) where {T}
+function Base.setindex!(gvec::GranularVector, val, i)
   was_nothing = !isdefined(gvec, i)
   gvec.vec[i] = val
   if was_nothing
