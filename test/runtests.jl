@@ -367,9 +367,8 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (-1, 1), (1, 1), (1, -1)], [(1, 2), (2, 
     @test ishomogeneous(mesh)
     @test allunique(mesh)
     @test orientation(mesh) === orient
-    nonorientable_faces(mesh)
-    face_orientations(mesh)
-    location.(Ref(mesh), vertices(mesh))
+    @test isempty(nonorientable_faces(mesh))
+    @test length(unique(face_orientations(mesh))) == 1
 
     mesh_uv = subdivide!(quad_mesh_uv(), 3)
     orient = orientation(mesh_uv)
