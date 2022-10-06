@@ -388,11 +388,15 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (-1, 1), (1, 1), (1, -1)], [(1, 2), (2, 
     @test GeometryExperiments.primitive_topology(typeof(fan)) == TrianglePrimitive
     @test TriangleList(fan) == list
 
-    @test VertexMesh(P2[(1.2, 1.4), (0.1, 0.2), (0.3, 0.4), (0.5, 0.2)], TrianglePrimitive) isa VertexMesh{<:TriangleStrip,P2}
-    @test VertexMesh(fan, P2[(1.2, 1.4), (0.1, 0.2), (0.3, 0.4), (0.5, 0.2)]) isa VertexMesh{<:TriangleFan,P2}
+    @test isa(VertexMesh(P2[(1.2, 1.4), (0.1, 0.2), (0.3, 0.4), (0.5, 0.2)], TrianglePrimitive), VertexMesh{<:TriangleStrip,P2})
+    @test isa(VertexMesh(fan, P2[(1.2, 1.4), (0.1, 0.2), (0.3, 0.4), (0.5, 0.2)]), VertexMesh{<:TriangleFan,P2})
 
     strip = LineStrip(1:5)
     @test GeometryExperiments.primitive_topology(typeof(strip)) == LinePrimitive
     @test LineList(strip) == LineList([(1, 2), (2, 3), (3, 4), (4, 5)])
+
+    mesh = quad_mesh_tri()
+    vmesh = VertexMesh(mesh)
+    @test vmesh.indices == TriangleList(Point{3,Int}[(0, 1, 2), (2, 3, 0)])
   end
 end;

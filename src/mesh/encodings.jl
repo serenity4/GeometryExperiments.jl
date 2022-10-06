@@ -80,3 +80,15 @@ VertexMesh(vertex_data, ::Type{C}) where {C<:PrimitiveTopology} = VertexMesh(Str
 function VertexMesh(encoding::IndexEncoding, vertex_data)
   VertexMesh{typeof(encoding),eltype(vertex_data)}(encoding, vertex_data)
 end
+
+function VertexMesh(mesh::Mesh)
+  all(istri, faces(mesh)) || error("The mesh must be triangulated.")
+  ishomogeneous(mesh) || error("Only homogeneous meshes are supported.")
+  vertex_data = collect(mesh.vertex_attributes)
+  @assert length(vertex_data) == nv(mesh)
+
+  # Remap vertex indices into a contiguous range that starts from zero.
+  vertex_index_map = Dictionary(index.(vertices(mesh)), 0:(nv(mesh) - 1))
+  indices = TriangleList([SVector{3,Int}(vertex_index_map[index(prev)] for (; prev) in edge_cycle(mesh, face)) for face in faces(mesh)])
+  VertexMesh(indices, vertex_data)
+end
