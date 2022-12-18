@@ -5,6 +5,7 @@ using AbstractTrees
 using AutoHashEquals
 using Dictionaries
 using LinearAlgebra
+using SymbolicGA
 
 const Point{Dim,T} = SVector{Dim,T}
 const Optional{T} = Union{T,Nothing}
@@ -75,6 +76,11 @@ export
   Patch,
   startindex,
   curve_points,
+
+  # intersections
+  Line,
+  Plane,
+  euclidean,
 
   # meshes
   Polytope,

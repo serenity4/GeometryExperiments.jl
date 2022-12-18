@@ -13,4 +13,5 @@ const P3 = Point3
   include("curves.jl")
   include("granular_vector.jl")
   include("meshes.jl")
+  include("intersections.jl")
 end;
