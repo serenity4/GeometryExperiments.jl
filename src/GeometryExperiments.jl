@@ -12,7 +12,7 @@ const Optional{T} = Union{T,Nothing}
 for i in 2:4
   for T in (Float32, Float64)
     sym = Symbol(:Point, i, T === Float64 ? "" : 'f')
-    @eval const $sym = Point{$i, $T}
+    @eval const $sym = Point{$i,$T}
     @eval export $sym
   end
 end
@@ -24,7 +24,6 @@ include("projection.jl")
 include("primitives.jl")
 include("intersections.jl")
 include("pointsets.jl")
-include("coordinate_systems.jl")
 
 include("curves.jl")
 include("bezier.jl")
@@ -67,10 +66,6 @@ export
   centroid,
   boundingelement,
   sort_nearest,
-
-  # coordinate systems
-  CoordinateSystem,
-  Cartesian,
 
   # curves
   Curve,
