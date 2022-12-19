@@ -22,8 +22,9 @@ euclidean(kvec::KVector{1,<:Any,D}) where {D} = kvec[begin:(end - 1)] ./ kvec[en
 
 abstract type AlgebraicEntity end
 
-SymbolicGA.getcomponent(entity::AlgebraicEntity, i) = SymbolicGA.getcomponent(entity.data, i)
-SymbolicGA.getcomponent(entity::AlgebraicEntity) = SymbolicGA.getcomponent(entity.data)
+Base.getindex(entity::AlgebraicEntity) = entity.data
+SymbolicGA.getcomponent(entity::AlgebraicEntity, i) = SymbolicGA.getcomponent(entity[], i)
+SymbolicGA.getcomponent(entity::AlgebraicEntity) = SymbolicGA.getcomponent(entity[])
 
 function dimension_from_points(points...)
   ns = length.(points)
@@ -43,7 +44,6 @@ function Line(A, B)
 end
 
 Base.intersect(l1::Line{3}, l2::Line{3}) = @pga2 l1::Bivector ∨ l2::Bivector
-Base.intersect(l1::Line{4}, l2::Line{4}) = @pga3 l1::Bivector ∨ l2::Bivector
 
 struct Plane{D,T,N} <: AlgebraicEntity
   data::KVector{3,T,D,N}
@@ -56,8 +56,13 @@ function Plane(A, B, C)
   error("Only two and three-dimensional Euclidean spaces are supported")
 end
 
-Base.intersect(l::Line{4}, p::Plane{4}) = @pga3 l::Bivector ∨ p::Trivector
-Base.intersect(p::Plane{4}, l::Line{4}) = @pga3 p::Trivector ∨ l::Bivector
+using Combinatorics: permutations
+
+binary_combinations(x) = [collect(permutations(x, 2)); [[obj, obj] for obj in x]]
+
+for ((T1, ST1), (T2, ST2)) in binary_combinations([:Line => :Bivector, :Plane => :Trivector])
+  @eval Base.intersect(x::$T1{4}, y::$T2{4}) = @pga3 x::$ST1 ∨ y::$ST2
+end
 
 Base.in(p, obj::NormedPrimitive) = obj(p) ≤ 0
 Base.in(p, tr::Transformed) = tr(p) ≤ 0

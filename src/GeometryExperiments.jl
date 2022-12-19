@@ -38,6 +38,8 @@ include("mesh/encodings.jl")
 include("mesh/subdivide.jl")
 include("mesh/triangulate.jl")
 
+include("camera.jl")
+
 export
   Point,
 
@@ -109,7 +111,10 @@ export
   LineStrip, LineList,
   VertexMesh,
   SubdivisionAlgorithm, UniformSubdivision,
-  subdivide!, triangulate!
+  subdivide!, triangulate!,
+
+  # camera
+  PinholeCamera
 
 
 end # module

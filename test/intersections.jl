@@ -37,12 +37,19 @@ ENV["JULIA_DEBUG"] = ""
   b = (1.0, 0.0, 0.0)
   c = (1.0, 0.0, 1.0)
   d = (1.0, 1.0, 1.0)
+  e = (1.0, 1.0, 0.0)
   P = Plane(b, c, d)
   L1 = Line(a, b)
   I = intersect(L1, P)
   @test euclidean(I) == b
   @test I[end] == 1.0
   I = intersect(Line(b, a), P)
+  I = intersect(P, Line(b, a))
   @test euclidean(I) == b
   @test I[end] == -1.0
+  I = intersect(P, P)
+  @test all(iszero, I)
+  P′ = Plane(a, b, e)
+  I = intersect(P, P′)
+  @test I ≈ Line(e, b)[]
 end;
