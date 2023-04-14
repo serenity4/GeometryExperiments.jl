@@ -7,6 +7,13 @@ a Bézier curve from a parametric expression.
 abstract type BezierEvalMethod end
 
 """
+Fast evaluation in the case of a fixed small number `N` of control points.
+"""
+struct FixedDegree{N} <: BezierEvalMethod
+  FixedDegree{N}() where {N} = N > 1 ? new() : throw(ArgumentError("`N` must be greater than 1"))
+end
+
+"""
 Approximate evaluation using Horner's method.
 Recommended for a large number of control points,
 if you can afford a precision loss.
@@ -19,8 +26,19 @@ struct BezierCurve{M<:BezierEvalMethod} <: Curve
 end
 
 BezierCurve() = BezierCurve(Horner())
+BezierCurve(N) = BezierCurve(FixedDegree{N}())
 
 degree(p) = length(p) - 1
+
+lerp(a, b, t) = (one(t) - t) .* a .+ t .* b
+
+@generated function (curve::BezierCurve{FixedDegree{N}})(t, points) where {N}
+  N == 2 && return :(lerp(points[1], points[2], t))
+  pa = Expr(:tuple, (:(points[$i]) for i in 1:(N - 1))...)
+  pb = Expr(:tuple, (:(points[$i]) for i in 2:N)...)
+  c = BezierCurve(N - 1)
+  :(lerp($c(t, $pa), $c(t, $pb), t))
+end
 
 """
 Apply Horner's method on the monomial representation of the
@@ -30,9 +48,6 @@ Horner's rule recursively reconstructs B from a sequence bᵢ
 with bₙ = aₙ and bᵢ₋₁ = aᵢ₋₁ + bᵢ * t until b₀ = B.
 """
 function (curve::BezierCurve{Horner})(t, points)
-  if t < 0 || t > 1
-    throw(DomainError(t, "b(t) is not defined for t outside [0, 1]."))
-  end
   d = length(points)
   T = eltype(eltype(points))
   t̄ = one(T) - t
@@ -48,8 +63,8 @@ function (curve::BezierCurve{Horner})(t, points)
     cᵢ₋₁ *= i / (n - i + one(T))
     pᵢ₋₁ = points[i]
     t̄ⁿ⁻ⁱ *= t̄
-    aᵢ₋₁ = cᵢ₋₁ * pᵢ₋₁ * t̄ⁿ⁻ⁱ
-    bᵢ₋₁ = aᵢ₋₁ + bᵢ₋₁ * t
+    aᵢ₋₁ = cᵢ₋₁ .* pᵢ₋₁ .* t̄ⁿ⁻ⁱ
+    bᵢ₋₁ = aᵢ₋₁ .+ bᵢ₋₁ .* t
   end
 
   b₀ = bᵢ₋₁

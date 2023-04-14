@@ -7,8 +7,6 @@
     @test b(T(1), points) == P2(1, 0)
     @test b(T(0.5), points) == P2(0.5, 0.5)
     @test b(T(0.5), points) == P2(0.5, 0.5)
-    @test_throws DomainError(T(-0.1), "b(t) is not defined for t outside [0, 1].") b(T(-0.1), points)
-    @test_throws DomainError(T(1.2), "b(t) is not defined for t outside [0, 1].") b(T(1.2), points)
   end
 
   @testset "Patches" begin
