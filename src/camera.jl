@@ -1,4 +1,4 @@
-struct PinholeCamera{O<:KVector{1},P<:KVector{3}}
+struct PinholeCamera{O<:KVector{1},P<:Trivector}
   optical_center::O
   image_plane::P
 end

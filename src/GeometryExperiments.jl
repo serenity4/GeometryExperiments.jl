@@ -6,6 +6,7 @@ using AutoHashEquals
 using Dictionaries
 using LinearAlgebra
 using SymbolicGA
+using SymbolicGA: Scalar
 
 const Point{Dim,T} = SVector{Dim,T}
 const Optional{T} = Union{T,Nothing}
@@ -19,6 +20,7 @@ for i in 2:4
 end
 
 include("utils.jl")
+include("algebras.jl")
 
 include("transforms.jl")
 include("projection.jl")
