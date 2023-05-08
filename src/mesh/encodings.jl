@@ -19,8 +19,8 @@ primitive_topology(::Type{<:Strip{C}}) where {C} = C
 
 Strip{C}(indices) where {C} = Strip{C,typeof(indices)}(indices)
 
-const LineStrip = Strip{LinePrimitive}
-const TriangleStrip = Strip{TrianglePrimitive}
+const LineStrip{I} = Strip{LinePrimitive,I}
+const TriangleStrip{I} = Strip{TrianglePrimitive,I}
 
 struct Fan{C<:PrimitiveTopology,I} <: IndexEncoding
   indices::I
@@ -38,8 +38,8 @@ end
 
 primitive_topology(::Type{<:IndexList{C}}) where {C} = C
 
-const LineList = IndexList{LinePrimitive}
-const TriangleList = IndexList{TrianglePrimitive}
+const LineList{T} = IndexList{LinePrimitive,2,T}
+const TriangleList{T} = IndexList{TrianglePrimitive,3,T}
 
 function IndexList{C}(indices) where {C<:PrimitiveTopology}
   IndexList{C,parametric_dimension(C),eltype(eltype(indices))}(indices)
@@ -54,6 +54,7 @@ function TriangleList(encoding::TriangleFan, T = Int)
   TriangleList(list)
 end
 
+TriangleList(indices::AbstractVector) = TriangleList{eltype(eltype(indices))}(indices)
 function TriangleList(encoding::TriangleStrip, T = Int)
   indices = encoding.indices
   list = map(1:(lastindex(indices) - 2)) do i
@@ -62,6 +63,7 @@ function TriangleList(encoding::TriangleStrip, T = Int)
   TriangleList(list)
 end
 
+LineList(indices::AbstractVector) = LineList{eltype(eltype(indices))}(indices)
 function LineList(encoding::LineStrip, T = Int)
   indices = encoding.indices
   LineList([SVector{2,T}(indices[i], indices[i + 1]) for i in 1:(length(indices) - 1)])
@@ -70,15 +72,15 @@ end
 """
 Mesh represented with vertex and index data.
 """
-struct VertexMesh{I<:IndexEncoding,T}
+struct VertexMesh{I<:IndexEncoding,T,V<:AbstractVector{T}}
   indices::I
-  vertex_data::Vector{T}
+  vertex_data::V
 end
 
 VertexMesh(vertex_data, ::Type{C}) where {C<:PrimitiveTopology} = VertexMesh(Strip{C}(1:length(vertex_data)), vertex_data)
 
 function VertexMesh(encoding::IndexEncoding, vertex_data)
-  VertexMesh{typeof(encoding),eltype(vertex_data)}(encoding, vertex_data)
+  VertexMesh{typeof(encoding),eltype(vertex_data),typeof(vertex_data)}(encoding, vertex_data)
 end
 
 function VertexMesh(mesh::Mesh)

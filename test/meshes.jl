@@ -18,7 +18,6 @@ quad_mesh_uv() =
   )
 quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (-1, 1), (1, 1), (1, -1)], [(1, 2), (2, 3), (3, 4), (4, 1), (1, 3)], [[1, 2, 5], [3, 4, 5]])
 
-
 @testset "Meshes" begin
   # Direct mutation and utilities.
 
@@ -212,5 +211,11 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (-1, 1), (1, 1), (1, -1)], [(1, 2), (2, 
     mesh = quad_mesh_tri()
     vmesh = VertexMesh(mesh)
     @test vmesh.indices == TriangleList(Point{3,Int}[(0, 1, 2), (2, 3, 0)])
+  end
+
+  @testset "Triangle mesh" begin
+    mesh = TriangleMesh(TriangleStrip(1:4), PointSet(HyperCube{2}, Point2f))
+    @test isa(mesh, TriangleMesh)
+    @test length(vertices(mesh)) == 4
   end
 end;

@@ -36,6 +36,7 @@ include("mesh/attributes.jl")
 include("mesh/diff.jl")
 include("mesh/iteration.jl")
 include("mesh/encodings.jl")
+include("mesh/triangle_mesh.jl")
 include("mesh/subdivide.jl")
 include("mesh/triangulate.jl")
 
@@ -111,6 +112,7 @@ export
   TriangleStrip, TriangleFan, TriangleList,
   LineStrip, LineList,
   VertexMesh,
+  Vertex, TriangleMesh,
   SubdivisionAlgorithm, UniformSubdivision,
   subdivide!, triangulate!,
 
