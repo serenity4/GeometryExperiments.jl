@@ -6,6 +6,8 @@ using AutoHashEquals
 using Dictionaries
 using LinearAlgebra
 using SymbolicGA
+using PrecompileTools
+using CompileTraces
 
 const Point{Dim,T} = SVector{Dim,T}
 const Optional{T} = Union{T,Nothing}
@@ -41,6 +43,8 @@ include("mesh/subdivide.jl")
 include("mesh/triangulate.jl")
 
 include("camera.jl")
+
+@compile_workload @compile_traces "precompilation_traces.jl"
 
 export
   Point,
