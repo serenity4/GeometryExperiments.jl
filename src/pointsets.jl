@@ -9,6 +9,8 @@ Base.:(==)(x::PointSet, y::PointSet) = x.points == y.points
 
 (transf::Transform)(set::PointSet) = PointSet(map(transf, set))
 
+centroid(np::Primitive) = origin(np)
+centroid(tr::Transformed) = tr.transf(centroid(tr.obj))
 centroid(set::PointSet) = sum(set) / length(set)
 centroid(args...) = centroid(PointSet(args...))
 
