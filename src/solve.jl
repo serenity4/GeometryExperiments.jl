@@ -11,4 +11,4 @@ function newton_raphson(f, f′, x₀; tol = 1e-8, max_iter = 1000)
   (x, false)
 end
 
-newton_raphson(f, x₀; tol = 1e-8, max_iter = 1e3) = newton_raphson(f, x -> ForwardDiff.derivative(f, x), x₀; tol, max_iter)
+newton_raphson(f, x₀; tol = 1e-8, max_iter = 1e3) = newton_raphson(f, x -> derivative(f, x), x₀; tol, max_iter)

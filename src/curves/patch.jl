@@ -26,6 +26,7 @@ end
 
 points_per_curve(::Patch{<:Any,N}) where {N} = N
 
+Base.keys(patch::Patch) = eachindex(patch)
 Base.eltype(patch::Patch) = typeof(patch[1])
 Base.IteratorEltype(::Patch) = Base.HasEltype()
 Base.firstindex(patch::Patch) = 1
@@ -65,6 +66,9 @@ function compactify(patch::Patch{C,N}) where {C,N}
 end
 
 function project(patch::Patch, p::Point{2,T}) where {T}
-  curve = argmin(curve -> minimum(cp -> distance_squared(cp, p), curve.points), patch)
-  project(curve, p)
+  _, i = findmin(curve -> minimum(cp -> distance_squared(cp, p), curve.points), patch)
+  curve = patch[i]
+  t, p′ = project(curve, p)
+  t = ((i - 1) + t) / length(patch)
+  t, p′
 end

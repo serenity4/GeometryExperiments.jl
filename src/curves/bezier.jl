@@ -78,10 +78,19 @@ end
 
 function project(curve::BezierCurve, p::Point{2,T}) where {T}
   degree(curve) == 2 || error("Projection only supported for quadratic Bezier curves")
-  t, converged = newton_raphson(0.5) do t
-    distance_squared(curve(t), p)
+  t, converged = newton_raphson(0.5; tol = 1e-14) do t
+    C = curve(t)
+    C′ = derivative(curve, t)
+    C′ ⋅ (C - p)
   end
   @assert converged "Newton-Raphson did not converge"
+
+  # The orthogonality condition will not hold if one of the endpoints has the minimum distance.
+  # If that is the case, return the relevant endpoint.
+  d = distance_squared(curve(t), p)
+  (dmin, i) = findmin(cp -> distance_squared(cp, p), endpoints(curve))
+  dmin < d && return (i - 1.0, endpoints(curve)[i])
+
   t = clamp(t, zero(T), one(T))
   (t, curve(t))
 end

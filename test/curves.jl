@@ -33,9 +33,16 @@ using GeometryExperiments: compactify, decompactify
   end
 
   @testset "Projections" begin
-    curve = BezierCurve(P2[(0, 0), (0.5, 1), (1, 0)])
-    @test collect(project.(curve, curve.points)) == tuple.(0:0.5:1, curve.(0:0.5:1))
+    curve = BezierCurve(P2[(-0.1, 0), (0.5, 0.4), (1.1, 0)])
+    @test project(curve, curve.points[1]) == (0, curve(0))
+    @test project(curve, curve.points[2]) == (0.5, curve(0.5))
+    @test project(curve, curve.points[3]) == (1, curve(1))
     patch = Patch{BezierCurve,3}(P2[(0, 0), (0.5, 1), (1, 0), (1.5, -1), (2, 0)])
     @test project(patch, P2(0, 0)) == (0, P2(0, 0))
+    @test project(patch, P2(0, -1)) == (0, P2(0, 0))
+    t, p = project(patch, P2(1.4, 0.3))
+    @test t ≈ 0.483 atol = 0.001
+    @test p ≈ P2(0.965, 0.067) atol = 0.001
+    @test project(patch, P2(2, 0.5)) == (1, P2(2, 0))
   end
 end;

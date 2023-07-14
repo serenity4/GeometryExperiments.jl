@@ -1,5 +1,5 @@
 using GeometryExperiments
-using GeometryExperiments: index, Point
+using GeometryExperiments: index, Point, Point2, Point2f, Box, Mesh
 using Test
 
 const GE = GeometryExperiments

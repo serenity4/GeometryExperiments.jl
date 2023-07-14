@@ -8,7 +8,7 @@ using LinearAlgebra
 using SymbolicGA
 using PrecompileTools
 using CompileTraces
-using ForwardDiff
+using ForwardDiff: derivative
 using StructEquality
 
 const Point{Dim,T} = SVector{Dim,T}
