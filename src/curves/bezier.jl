@@ -12,6 +12,7 @@ Fast evaluation in the case of a fixed small number `N` of control points.
 struct FixedDegree{N} <: BezierEvalMethod
   FixedDegree{N}() where {N} = N > 1 ? new() : throw(ArgumentError("`N` must be greater than 1"))
 end
+FixedDegree(n::Int) = FixedDegree{n}()
 
 """
 Approximate evaluation using Horner's method.
@@ -21,23 +22,28 @@ See https://en.wikipedia.org/wiki/Horner%27s_method.
 """
 struct Horner <: BezierEvalMethod end
 
-struct BezierCurve{M<:BezierEvalMethod} <: Curve
+@struct_hash_equal_isequal_isapprox struct BezierCurve{P,M<:BezierEvalMethod} <: Curve
+  points::P
   method::M
 end
 
-BezierCurve() = BezierCurve(Horner())
-BezierCurve(N) = BezierCurve(FixedDegree{N}())
+BezierCurve(points) = BezierCurve(points, Horner())
+
+Base.length(::Type{<:BezierCurve{P}}) where {P} = length(P)
+Base.length(curve::BezierCurve) = length(curve.points)
+
+(curve::BezierCurve)(t) = curve(t, Horner())
 
 degree(p) = length(p) - 1
 
 lerp(a, b, t) = (one(t) - t) .* a .+ t .* b
 
-@generated function (curve::BezierCurve{FixedDegree{N}})(t, points) where {N}
-  N == 2 && return :(lerp(points[1], points[2], t))
-  pa = Expr(:tuple, (:(points[$i]) for i in 1:(N - 1))...)
-  pb = Expr(:tuple, (:(points[$i]) for i in 2:N)...)
-  c = BezierCurve(N - 1)
-  :(lerp($c(t, $pa), $c(t, $pb), t))
+@generated function (curve::BezierCurve{<:Any,FixedDegree{N}})(t) where {N}
+  N == 2 && return :(lerp(curve.points[1], curve.points[2], t))
+  pa = Expr(:tuple, (:(curve.points[$i]) for i in 1:(N - 1))...)
+  pb = Expr(:tuple, (:(curve.points[$i]) for i in 2:N)...)
+  m = FixedDegree{N - 1}()
+  :(lerp(BezierCurve($pa, $m)(t), BezierCurve($pb, $m)(t), t))
 end
 
 """
@@ -47,8 +53,7 @@ curve, aᵢ = binomial(n, i) * pᵢ * t̄ⁿ⁻ⁱ and t̄ = (1 - t).
 Horner's rule recursively reconstructs B from a sequence bᵢ
 with bₙ = aₙ and bᵢ₋₁ = aᵢ₋₁ + bᵢ * t until b₀ = B.
 """
-function (curve::BezierCurve{Horner})(t, points)
-  d = length(points)
+function ((; points)::BezierCurve{<:Any,Horner})(t)
   T = eltype(eltype(points))
   t̄ = one(T) - t
   n = degree(points)
@@ -69,4 +74,14 @@ function (curve::BezierCurve{Horner})(t, points)
 
   b₀ = bᵢ₋₁
   b₀
+end
+
+function project(curve::BezierCurve, p::Point{2,T}) where {T}
+  degree(curve) == 2 || error("Projection only supported for quadratic Bezier curves")
+  t, converged = newton_raphson(0.5) do t
+    distance_squared(curve(t), p)
+  end
+  @assert converged "Newton-Raphson did not converge"
+  t = clamp(t, zero(T), one(T))
+  (t, curve(t))
 end

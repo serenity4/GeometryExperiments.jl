@@ -8,6 +8,8 @@ using LinearAlgebra
 using SymbolicGA
 using PrecompileTools
 using CompileTraces
+using ForwardDiff
+using StructEquality
 
 const Point{Dim,T} = SVector{Dim,T}
 const Optional{T} = Union{T,Nothing}
@@ -21,6 +23,7 @@ for i in 2:4
 end
 
 include("utils.jl")
+include("solve.jl")
 include("algebras.jl")
 
 include("transforms.jl")
@@ -30,7 +33,9 @@ include("intersections.jl")
 include("pointsets.jl")
 
 include("curves.jl")
-include("bezier.jl")
+include("curves/segment.jl")
+include("curves/bezier.jl")
+include("curves/patch.jl")
 
 include("granular_vector.jl")
 include("mesh.jl")
@@ -77,15 +82,17 @@ export
   sort_nearest,
 
   # curves
+  Segment,
   Curve,
   BezierCurve,
   BezierEvalMethod,
-  Horner,
+  Horner, FixedDegree,
   Patch,
   startindex,
   curve_points,
 
   # intersections
+  project,
   Line,
   Plane,
   euclidean,

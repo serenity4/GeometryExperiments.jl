@@ -1,5 +1,5 @@
 using GeometryExperiments
-using GeometryExperiments: index
+using GeometryExperiments: index, Point
 using Test
 
 const GE = GeometryExperiments

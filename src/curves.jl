@@ -1,31 +1,11 @@
 abstract type Curve end
 
-struct Patch{C<:Curve}
-  curve::C
-  n::Int
-end
+distance_squared(x::Point{Dim}, y::Point{Dim}) where {Dim} = sum((x .- y) .^ 2)
+distance_squared(curve::Curve, p) = distance_squared(project(curve, p)[2], p)
 
-function ncurves(patch::Patch, points)
-  nₚ = length(points)
-  1 + Int((nₚ - patch.n) / 2)
-end
+Base.broadcastable(c::Curve) = Ref(c)
 
-function (patch::Patch)(t, points)
-  nc = ncurves(patch, points)
-  curve_offset = clamp(Int(t ÷ (1 / nc)), 0, nc - 1)
-  remap = Scaling(nc) ∘ Translation(-curve_offset / nc)
-  t = remap(Point(t))[]
-  patch.curve(t, curve_points(patch, points, curve_offset))
-end
-
-startindex(patch::Patch, curve_offset) = 1 + (patch.n - 1) * curve_offset
-
-function curve_points(patch::Patch, points, curve_offset = 0)
-  start = startindex(patch, curve_offset)
-  @view points[start:(start + patch.n - 1)]
-end
-
-function Base.split(points, patch::Patch)
-  nc = ncurves(patch, points)
-  map(offset -> curve_points(patch, points, offset), 0:(nc - 1))
+function project(line::Line, p::T) where {T<:Point{2}}
+  vec = @pga2 (weight_left_complement(line::2) ∧ point(p)) ∨ line::2
+  (zero(eltype(T)), T(euclidean(vec)))
 end

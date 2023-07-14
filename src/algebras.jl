@@ -4,8 +4,8 @@ macro pga2(args...)
     magnitude2(x) = x ⦿ x
     point(x) = embed(x) + 1.0::e3
   end
-  varinfo = parse_variable_info(definitions; warn_override = false)
-  esc(codegen_expression((2, 0, 1), args...; varinfo))
+  bindings = parse_bindings(definitions; warn_override = false)
+  esc(codegen_expression((2, 0, 1), args...; bindings))
 end
 
 macro pga3(args...)
@@ -14,8 +14,8 @@ macro pga3(args...)
     magnitude2(x) = x ⦿ x
     point(x) = embed(x) + 1.0::e4
   end
-  varinfo = parse_variable_info(definitions; warn_override = false)
-  esc(codegen_expression((3, 0, 1), args...; varinfo))
+  bindings = parse_bindings(definitions; warn_override = false)
+  esc(codegen_expression((3, 0, 1), args...; bindings))
 end
 
 euclidean(kvec::KVector{1,<:Any,D}) where {D} = kvec[begin:(end - 1)] ./ kvec[end]
