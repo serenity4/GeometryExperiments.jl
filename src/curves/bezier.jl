@@ -94,3 +94,47 @@ function project(curve::BezierCurve, p::Point{2,T}) where {T}
   t = clamp(t, zero(T), one(T))
   (t, curve(t))
 end
+
+Base.intersect(line::Line{2}, bezier::BezierCurve{2}) = intersect(bezier, line)
+function Base.intersect(bezier::BezierCurve, line::Line{2,T}) where {T}
+  degree(bezier) == 2 || error("Intersections between a line and a Bézier curve are only supported for quadratic curves")
+  # Uses part of the technique from GPU-Centered Font Rendering Directly from Glyph Outlines, E. Lengyel, 2017.
+  direction = Point{2,T}((@pga2 weight(line::2))[2:3])
+  α = atan(direction[2], direction[1])
+  rotor = @ga 2 exp(-((-0.5α)::e̅))
+  distance = @pga2 T projected_geometric_norm(line::2)
+  points = (point -> @ga 2 Point{2,T} point::1 << rotor::(0, 2)).(bezier.points)
+  ((x₁, y₁), (x₂, y₂), (x₃, y₃)) = points
+  (y₁, y₂, y₃) = (y₁, y₂, y₃) .+ sign(α) * distance
+
+  # Cast a ray in the X direction.
+  code = classify_bezier_curve((y₁, y₂, y₃))
+  iszero(code) && return nothing
+  (t₁, t₂) = compute_roots(y₁ - 2y₂ + y₃, y₁ - y₂, y₁)
+  0 ≤ t₁ ≤ 1 || (t₁ = T(NaN))
+  0 ≤ t₂ ≤ 1 || (t₂ = T(NaN))
+  isnan(t₁) && isnan(t₂) && return nothing
+  isnan(t₁) && return bezier(t₂)
+  isnan(t₂) && return bezier(t₁)
+  (bezier(t₁), bezier(t₂))
+end
+
+function classify_bezier_curve(points)
+  (x₁, x₂, x₃) = points
+  rshift = ifelse(x₁ > 0, 1 << 1, 0) + ifelse(x₂ > 0, 1 << 2, 0) + ifelse(x₃ > 0, 1 << 3, 0)
+  (0x2e74 >> rshift) & 0x0003
+end
+
+function compute_roots(a, b, c)
+  if isapprox(a, zero(a), atol = 1e-7)
+    t₁ = t₂ = c / 2b
+    return (t₁, t₂)
+  end
+  Δ = b^2 - a * c
+  T = typeof(a)
+  Δ < 0 && return (T(NaN), T(NaN))
+  δ = sqrt(Δ)
+  t₁ = (b - δ) / a
+  t₂ = (b + δ) / a
+  (t₁, t₂)
+end

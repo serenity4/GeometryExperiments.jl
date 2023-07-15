@@ -1,22 +1,3 @@
-function dimension_from_points(points...)
-  ns = length.(points)
-  allequal(ns) || error("All points must have the same length (got lengths $ns)")
-  first(ns)
-end
-
-struct Line{Dim,T,D,N} <: AlgebraicEntity
-  data::Bivector{T,D,N}
-end
-
-Line{Dim}(data::Bivector{T,D,N}) where {Dim,T,D,N} = Line{Dim,T,D,N}(data)
-
-function Line(A, B)
-  d = dimension_from_points(A, B)
-  d == 2 && return Line{2}(@pga2 point(A) ∧ point(B))
-  d == 3 && return Line{3}(@pga3 point(A) ∧ point(B))
-  error("Only two and three-dimensional Euclidean spaces are supported")
-end
-
 Base.intersect(l1::Line{2}, l2::Line{2}) = @pga2 l1::Bivector ∨ l2::Bivector
 
 struct Plane{Dim,T,D,N} <: AlgebraicEntity

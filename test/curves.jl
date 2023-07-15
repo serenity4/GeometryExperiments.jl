@@ -55,4 +55,15 @@ using GeometryExperiments: compactify, decompactify
     @test p ≈ P2(0.965, 0.067) atol = 0.001
     @test project(patch, P2(2, 0.5)) == (1, P2(2, 0))
   end
+
+  @testset "Intersections" begin
+    curve = BezierCurve(P2[(0.4, 0.7), (0.1, 0.6), (0.6, 0.3)])
+    line = Line(P2(0.3, 0), P2(0.5, 0.25))
+    @test intersect(curve, line) isa Point2
+    @test intersect(curve, line) ≈ intersect(curve, Line(line(1), line(0)))
+    line = Line(P2(0, 0), P2(0.33, 0.6))
+    @test intersect(curve, line) isa NTuple{2,Point2}
+    line = Line(P2(0, 0.5), P2(1, 0))
+    @test intersect(curve, line) isa Nothing
+  end
 end;

@@ -7,8 +7,3 @@ points(curve::Curve) = curve.points
 endpoints(curve::Curve) = (points(curve)[begin], points(curve)[end])
 
 Base.broadcastable(c::Curve) = Ref(c)
-
-function project(line::Line, p::T) where {T<:Point{2}}
-  vec = @pga2 (weight_left_complement(line::2) ∧ point(p)) ∨ line::2
-  (zero(eltype(T)), T(euclidean(vec)))
-end

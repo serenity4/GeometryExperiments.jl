@@ -29,13 +29,15 @@ include("algebras.jl")
 include("transforms.jl")
 include("projection.jl")
 include("primitives.jl")
-include("intersections.jl")
 include("pointsets.jl")
 
 include("curves.jl")
 include("curves/segment.jl")
+include("curves/line.jl")
 include("curves/bezier.jl")
 include("curves/patch.jl")
+
+include("intersections.jl")
 
 include("granular_vector.jl")
 include("mesh.jl")
