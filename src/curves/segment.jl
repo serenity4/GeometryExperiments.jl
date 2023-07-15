@@ -12,5 +12,7 @@ function project(segment::Segment{2}, p::Point{2})
 end
 
 function coordinate(segment::Segment{2}, p::Point{2})
-  (@ga 2 ((p::1 - segment.a::1) / (segment.b::1 - segment.a::1))::0)[]
+  @ga 2 eltype(p) ((p::1 - segment.a::1) / (segment.b::1 - segment.a::1))::0
 end
+
+(segment::Segment)(t) = lerp(segment.a, segment.b, t)

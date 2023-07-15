@@ -1,6 +1,14 @@
 using GeometryExperiments: compactify, decompactify
 
 @testset "Curves" begin
+  @testset "Segments" begin
+    a = P2(0, 0)
+    b = P2(1, 1)
+    c = P2(0, 1)
+    segment = Segment(a, b)
+    @test segment(0.5) == a + (b - a) / 2
+  end
+
   @testset "Bezier curves" begin
     T = Float64
     for method in (Horner(), FixedDegree(3))
@@ -33,6 +41,8 @@ using GeometryExperiments: compactify, decompactify
   end
 
   @testset "Projections" begin
+    segment = Segment(P2(0, 0), P2(1, 1))
+    @test project(segment, P2(0, 1)) == (0.5, P2(0.5, 0.5))
     curve = BezierCurve(P2[(-0.1, 0), (0.5, 0.4), (1.1, 0)])
     @test project(curve, curve.points[1]) == (0, curve(0))
     @test project(curve, curve.points[2]) == (0.5, curve(0.5))
