@@ -1,6 +1,7 @@
 using GeometryExperiments
 using GeometryExperiments: index, Point, Point2, Point2f, Box, Mesh
 using Test
+using SymbolicGA: @ga
 
 const GE = GeometryExperiments
 const P2 = Point2

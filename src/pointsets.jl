@@ -55,6 +55,8 @@ function sort_nearest(set::PointSet, point, dist = HyperSphere(0.0))
   set.points[indices]
 end
 
+nearest(set::PointSet, point) = argmin(x -> distance_squared(x, point), set)
+
 function Base.show(io::IO, set::PointSet{Dim,T}) where {Dim,T}
   print(io, "PointSet{$Dim,$T}(", join(set, ", "), ')')
 end

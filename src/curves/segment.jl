@@ -5,13 +5,13 @@ end
 
 Base.length(::Type{<:Segment}) = 2
 
-function project(segment::Segment{2}, p::Point{2})
-  _, p′ = project(Line(segment.a, segment.b), p)
-  c = coordinate(segment, p′)
-  c < 0 ? (0, segment.a) : c > 1 ? (1, segment.b) : (c, p′)
+function projection_parameter(segment::Segment{2}, p::Point{2})
+  p′ = projection(Line(segment.a, segment.b), p)
+  clamp(coordinate(segment, p′), 0, 1)
 end
 
 function coordinate(segment::Segment{2}, p::Point{2})
+  segment.a ≈ segment.b && return 0.5one(eltype(p))
   @ga 2 eltype(p) ((p::1 - segment.a::1) / (segment.b::1 - segment.a::1))::0
 end
 

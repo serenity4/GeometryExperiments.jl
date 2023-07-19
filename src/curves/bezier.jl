@@ -76,23 +76,63 @@ function ((; points)::BezierCurve{<:Any,Horner})(t)
   b₀
 end
 
-function project(curve::BezierCurve, p::Point{2,T}) where {T}
+function derivative(curve::BezierCurve, t::Real)
+  degree(curve) == 2 && return begin
+    p₁, p₂, p₃ = curve.points
+    return 2(1 - t) .* (p₂ - p₁) .+ 2t .* (p₃ - p₂)
+  end
+  ForwardDiff.derivative(f, x)
+end
+
+function projection_parameter(curve::BezierCurve, p::Point{2,T}) where {T}
   degree(curve) == 2 || error("Projection only supported for quadratic Bezier curves")
-  t, converged = newton_raphson(0.5; tol = 1e-14) do t
+  f(t) = distance_squared(curve(t), p)
+  orthogonality_condition(t) = begin
     C = curve(t)
-    C′ = derivative(curve, t)
+    C′ = derivative(curve, t)::typeof(C)
     C′ ⋅ (C - p)
   end
-  @assert converged "Newton-Raphson did not converge"
 
+  # XXX: This tried to avoid Newton-Raphson when the problem is badly conditioned, but it seems like it's not that much more efficient and requires fine-tuning.
+
+  # p₁, p₂, p₃ = curve.points
+  # area = 0.5 * abs(@ga 2 T (p₂::1 - p₁::1) ∧ (p₃::1 - p₁::1))
+  # d = maximum(f, (0.0, 0.5, 1.0))
+  # fp = minimum(abs ∘ derivative(orthogonality_condition), (0.0, 0.5, 1.0))
+  # if d^2 / area > 10 || abs(fp) < 0.05
+  #   # Don't even try Newton-Raphson, as it is more likely to fail under these conditions.
+  #   ((a, b), converged) = bisection(orthogonality_condition, 0.0, 1.0)
+  #   t = (a + b) / 2
+  # else
+  #   ((a, b), converged) = bisection(orthogonality_condition, 0.0, 1.0; max_iter = 3)
+  #   t = (a + b) / 2
+  #   if !converged
+  #     (t, converged) = newton_raphson(orthogonality_condition, t; lb = 0.0, ub = 1.0, max_iter = 10)
+  #   end
+  #   if !converged
+  #     ((a, b), converged) = bisection(orthogonality_condition, 0.0, 1.0)
+  #     t = (a + b) / 2
+  #   end
+  # end
+
+  ((a, b), converged) = bisection(orthogonality_condition, 0.0, 1.0; max_iter = 3)
+  t = (a + b) / 2
+  if !converged
+    (t, converged) = newton_raphson(orthogonality_condition, t; lb = 0.0, ub = 1.0, max_iter = 10)
+    if !converged
+      ((a, b), converged) = bisection(orthogonality_condition, 0.0, 1.0; max_iter = 100)
+      t = (a + b) / 2
+    end
+  end
+
+  d = f(t)
+  @assert converged "Local descent did not converge: last estimate is $t for point projection of $p, with a distance of $d"
   # The orthogonality condition will not hold if one of the endpoints has the minimum distance.
   # If that is the case, return the relevant endpoint.
-  d = distance_squared(curve(t), p)
   (dmin, i) = findmin(cp -> distance_squared(cp, p), endpoints(curve))
-  dmin < d && return (i - 1.0, endpoints(curve)[i])
 
-  t = clamp(t, zero(T), one(T))
-  (t, curve(t))
+  dmin < d && return i - 1.0
+  t
 end
 
 Base.intersect(line::Line{2}, bezier::BezierCurve{2}) = intersect(bezier, line)
@@ -102,10 +142,10 @@ function Base.intersect(bezier::BezierCurve, line::Line{2,T}) where {T}
   direction = Point{2,T}((@pga2 weight(line::2))[2:3])
   α = atan(direction[2], direction[1])
   rotor = @ga 2 exp(-((-0.5α)::e̅))
-  distance = @pga2 T projected_geometric_norm(line::2)
-  points = (point -> @ga 2 Point{2,T} point::1 << rotor::(0, 2)).(bezier.points)
+  origin = projection(line, zero(Point{2,T}))
+
+  points = (point -> @ga 2 Point{2,T} (point::1 - origin::1) << rotor::(0, 2)).(bezier.points)
   ((x₁, y₁), (x₂, y₂), (x₃, y₃)) = points
-  (y₁, y₂, y₃) = (y₁, y₂, y₃) .+ sign(α) * distance
 
   # Cast a ray in the X direction.
   code = classify_bezier_curve((y₁, y₂, y₃))

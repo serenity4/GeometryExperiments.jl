@@ -19,9 +19,13 @@ function Line(A, B)
   error("Only two and three-dimensional Euclidean spaces are supported")
 end
 
-function project(line::Line, p::T) where {T<:Point{2}}
+function projection(line::Line, p::T) where {T<:Point{2}}
   vec = @pga2 (weight_left_complement(line::2) ∧ point(p)) ∨ line::2
-  (zero(eltype(T)), T(euclidean(vec)))
+  T(euclidean(vec))
 end
 
+coordinate(line::Line{Dim}, point::Point{Dim}) where {Dim} = coordinate(line.segment, point)
+
 (line::Line)(t) = line.segment(t)
+
+Base.:(-)(line::Line) = Line(line(1), line(0))

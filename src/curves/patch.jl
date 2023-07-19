@@ -65,10 +65,20 @@ function compactify(patch::Patch{C,N}) where {C,N}
   Patch{C,N}(points; compact = true)
 end
 
-function project(patch::Patch, p::Point{2,T}) where {T}
+function projection_parameter(patch::Patch, p::Point{2,T}) where {T}
   _, i = findmin(curve -> minimum(cp -> distance_squared(cp, p), curve.points), patch)
   curve = patch[i]
-  t, p′ = project(curve, p)
-  t = ((i - 1) + t) / length(patch)
-  t, p′
+  t = projection_parameter(curve, p)
+  ((i - 1) + t) / length(patch)
+end
+
+Base.intersect(x::AlgebraicEntity, patch::Patch) = intersect(patch, x)
+function Base.intersect(patch::Patch, line::Line{Dim,T}) where {Dim,T}
+  points = Point{Dim,T}[]
+  for curve in patch
+    p = intersect(curve, line)
+    isnothing(p) && continue
+    isa(p, Point) ? push!(points, p) : append!(points, p)
+  end
+  points
 end

@@ -8,8 +8,11 @@ using LinearAlgebra
 using SymbolicGA
 using PrecompileTools
 using CompileTraces
-using ForwardDiff: derivative
+import ForwardDiff
 using StructEquality
+
+derivative(f::F, x) where {F} = ForwardDiff.derivative(f, x)
+derivative(f::F) where {F} = t -> derivative(f, t)
 
 const Point{Dim,T} = SVector{Dim,T}
 const Optional{T} = Union{T,Nothing}
@@ -81,6 +84,7 @@ export
   PointSet,
   centroid,
   boundingelement,
+  nearest,
   sort_nearest,
 
   # curves
@@ -94,7 +98,8 @@ export
   curve_points,
 
   # intersections
-  project,
+  projection_parameter,
+  projection,
   Line,
   Plane,
   euclidean,

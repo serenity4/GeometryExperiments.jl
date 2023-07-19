@@ -42,18 +42,18 @@ using GeometryExperiments: compactify, decompactify
 
   @testset "Projections" begin
     segment = Segment(P2(0, 0), P2(1, 1))
-    @test project(segment, P2(0, 1)) == (0.5, P2(0.5, 0.5))
+    @test projection(segment, P2(0, 1)) ≈ P2(0.5, 0.5)
     curve = BezierCurve(P2[(-0.1, 0), (0.5, 0.4), (1.1, 0)])
-    @test project(curve, curve.points[1]) == (0, curve(0))
-    @test project(curve, curve.points[2]) == (0.5, curve(0.5))
-    @test project(curve, curve.points[3]) == (1, curve(1))
+    @test projection(curve, curve.points[1]) ≈ curve(0)
+    @test projection(curve, curve.points[2]) ≈ curve(0.5)
+    @test projection(curve, curve.points[3]) ≈ curve(1)
+    curve = BezierCurve(P2[(0.1, 0.1), (0.2, 0.3), (0.3, 0.35)])
+    @test projection(curve, P2(0.43, 0.15)) isa P2
     patch = Patch{BezierCurve,3}(P2[(0, 0), (0.5, 1), (1, 0), (1.5, -1), (2, 0)])
-    @test project(patch, P2(0, 0)) == (0, P2(0, 0))
-    @test project(patch, P2(0, -1)) == (0, P2(0, 0))
-    t, p = project(patch, P2(1.4, 0.3))
-    @test t ≈ 0.483 atol = 0.001
-    @test p ≈ P2(0.965, 0.067) atol = 0.001
-    @test project(patch, P2(2, 0.5)) == (1, P2(2, 0))
+    @test projection(patch, P2(0, 0)) ≈ P2(0, 0) atol = 1e-7
+    @test projection(patch, P2(0, -1)) ≈ P2(0, 0) atol = 1e-7
+    @test projection(patch, P2(1.4, 0.3)) ≈ P2(0.965, 0.067) atol = 0.001
+    @test projection(patch, P2(2, 0.5)) ≈ P2(2, 0)
   end
 
   @testset "Intersections" begin
@@ -65,5 +65,9 @@ using GeometryExperiments: compactify, decompactify
     @test intersect(curve, line) isa NTuple{2,Point2}
     line = Line(P2(0, 0.5), P2(1, 0))
     @test intersect(curve, line) isa Nothing
+    patch = Patch{BezierCurve,3}(P2[(0.0, 0.0), (0.3, 0.45), (0.3, 0.6), (0.3, 0.7), (0.7, 0.7), (0.8, 0.1), (0.0, 0.0)])
+    line = Line(P2(0.3, 0.35), P2(0.39, 0.36))
+    @test length(intersect(patch, line)) == 2
+    @test length(intersect(patch, -line)) == 2
   end
 end;
