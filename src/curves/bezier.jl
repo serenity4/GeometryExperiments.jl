@@ -79,9 +79,9 @@ end
 function derivative(curve::BezierCurve, t::Real)
   degree(curve) == 2 && return begin
     p₁, p₂, p₃ = curve.points
-    return 2(1 - t) .* (p₂ - p₁) .+ 2t .* (p₃ - p₂)
+    2(1 - t) .* (p₂ - p₁) .+ 2t .* (p₃ - p₂)
   end
-  ForwardDiff.derivative(f, x)
+  ForwardDiff.derivative(curve, t)
 end
 
 function projection_parameter(curve::BezierCurve, p::Point{2,T}) where {T}
@@ -89,7 +89,7 @@ function projection_parameter(curve::BezierCurve, p::Point{2,T}) where {T}
   f(t) = distance_squared(curve(t), p)
   orthogonality_condition(t) = begin
     C = curve(t)
-    C′ = derivative(curve, t)::typeof(C)
+    C′ = derivative(curve, t)
     C′ ⋅ (C - p)
   end
 
