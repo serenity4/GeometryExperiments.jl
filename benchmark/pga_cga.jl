@@ -2,32 +2,24 @@
 
 using SymbolicGA, BenchmarkTools
 
-macro pga3(args...)
-  definitions = quote
-    embed(x) = x[1]::e1 + x[2]::e2 + x[3]::e3
-    magnitude2(x) = x ⦿ x
-    point(x) = embed(x) + 1.0::e4
-  end
-  varinfo = parse_variable_info(definitions; warn_override = false)
-  esc(codegen_expression((3, 0, 1), args...; varinfo))
+@geometric_space pga3 (3, 0, 1) quote
+  embed(x) = x[1]::e1 + x[2]::e2 + x[3]::e3
+  magnitude2(x) = x ⦿ x
+  point(x) = embed(x) + 1.0::e4
 end
 
 pga3_extract(x) = x[begin:(end - 1)] ./ x[end]
 
-macro cga3(args...)
-  definitions = quote
-    n = 1.0::e4 + 1.0::e5
-    n̄ = (-0.5)::e4 + 0.5::e5
-    embed(x) = x[1]::e1 + x[2]::e2 + x[3]::e3
-    magnitude2(x) = x ⦿ x
-    point(x) = embed(x) + (0.5::Scalar * magnitude2(embed(x))) * n + n̄
-    weight(X) = -X ⋅ n
-    unitize(X) = X / weight(X)
-    center(X) = X * n * X
-    radius2(X) = (magnitude2(X) / magnitude2(X ∧ n))::Scalar
-  end
-  varinfo = parse_variable_info(definitions; warn_override = false)
-  esc(codegen_expression((4, 1, 0), args...; varinfo))
+@geometric_space cga3 (4, 1) quote
+  n = 1.0::e4 + 1.0::e5
+  n̄ = (-0.5)::e4 + 0.5::e5
+  embed(x) = x[1]::e1 + x[2]::e2 + x[3]::e3
+  magnitude2(x) = x ⦿ x
+  point(x) = embed(x) + (0.5::Scalar * magnitude2(embed(x))) * n + n̄
+  weight(X) = -X ⋅ n
+  unitize(X) = X / weight(X)
+  center(X) = X * n * X
+  radius2(X) = (magnitude2(X) / magnitude2(X ∧ n))::Scalar
 end
 
 cga3_extract(x) = (@cga3 unitize(x::Vector))[1:(end - 2)]
