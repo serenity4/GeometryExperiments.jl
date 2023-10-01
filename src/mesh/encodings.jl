@@ -32,7 +32,7 @@ Fan{C}(indices) where {C} = Fan{C,typeof(indices)}(indices)
 
 const TriangleFan = Fan{TrianglePrimitive}
 
-@auto_hash_equals struct IndexList{C<:PrimitiveTopology,Dim,T} <: IndexEncoding
+@struct_hash_equal struct IndexList{C<:PrimitiveTopology,Dim,T} <: IndexEncoding
   indices::Vector{SVector{Dim,T}}
 end
 

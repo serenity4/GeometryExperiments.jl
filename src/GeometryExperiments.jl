@@ -2,7 +2,6 @@ module GeometryExperiments
 
 using StaticArrays: SVector, @SVector
 using AbstractTrees
-using AutoHashEquals
 using Dictionaries
 using LinearAlgebra
 using SymbolicGA
