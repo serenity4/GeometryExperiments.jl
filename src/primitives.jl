@@ -53,7 +53,7 @@ Box(semidiag::Point) = Box(-semidiag, semidiag)
 Base.:(-)(box::Box{Dim}, origin::Point{Dim}) where {Dim} = Box(box.min - origin, box.max - origin)
 Base.:(+)(box::Box{Dim}, origin::Point{Dim}) where {Dim} = Box(box.min + origin, box.max + origin)
 
-sdf(box::Box) = Translated(HyperCube(box.max - centroid(box)), Translation(centroid(box)))
+sdf(box::Box) = Translated(Scaled(HyperCube(1), Scaling(box.max - centroid(box))), Translation(centroid(box)))
 centroid(box::Box) = (box.min + box.max) / 2
 boundingelement(box::Box) = box
 

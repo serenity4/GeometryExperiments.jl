@@ -12,6 +12,7 @@
   @test b1 == Box(P3(-0.2, -0.4, -0.6), P3(0.2, 0.4, 0.6))
   @test centroid(b1) == zero(P3)
   b2 = b1 + P3(0.1, 0.7, 0.4)
+  @test centroid(b1) in b1
   @test centroid(b2) ≈ centroid(b1) + P3(0.1, 0.7, 0.4)
 
   hc = Scaled(HyperCube(0.2), Scaling(1.0, 2.0))

@@ -20,6 +20,7 @@ for ((T1, ST1), (T2, ST2)) in binary_combinations([:Line => :Bivector, :Plane =>
   @eval Base.intersect(x::$T1{3}, y::$T2{3}) = @pga3 x::$ST1 ∨ y::$ST2
 end
 
+Base.in(p, box::Box) = in(p, sdf(box))
 Base.in(p, obj::NormedPrimitive) = obj(p) ≤ 0
 Base.in(p, tr::Transformed) = tr(p) ≤ 0
 Base.in(p::Point{N}, proj::Projection{N}) where {N} = p in proj.obj
