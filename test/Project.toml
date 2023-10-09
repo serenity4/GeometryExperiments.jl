@@ -1,3 +1,5 @@
 [deps]
 GeometryExperiments = "1147bd75-18e1-436d-adda-d58e854f897d"
 MakieCore = "20f20a25-4f0e-4fdf-b5d1-57303727442b"
+SymbolicGA = "be1275fb-6550-422f-8b88-a5943ccecfb8"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
