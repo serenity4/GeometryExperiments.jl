@@ -43,12 +43,15 @@ Base.isapprox(x::Ellipsoid, y::Ellipsoid) = x.obj.radius .* x.transf.vec ≈ y.o
 
 Base.show(io::IO, elps::Ellipsoid{Dim,T}) where {Dim,T} = print(io, "Ellipsoid{$Dim, $T}($(elps.transf.vec .* elps.obj.radius))")
 
-struct Box{Dim,T} <: Primitive{T}
+@struct_hash_equal_isapprox struct Box{Dim,T} <: Primitive{T}
   min::Point{Dim,T}
   max::Point{Dim,T}
 end
 
 Box(semidiag::Point) = Box(-semidiag, semidiag)
+
+Base.convert(::Type{Box{Dim,T}}, box::Box{Dim,T}) where {Dim,T} = box
+Base.convert(::Type{Box{Dim,T1}}, box::Box{Dim,T2}) where {Dim,T1,T2} = Box(convert(Point{Dim,T2}, box.min), convert(Point{Dim,T2}, box.max))
 
 Base.:(-)(box::Box{Dim}, origin::Point{Dim}) where {Dim} = Box(box.min - origin, box.max - origin)
 Base.:(+)(box::Box{Dim}, origin::Point{Dim}) where {Dim} = Box(box.min + origin, box.max + origin)

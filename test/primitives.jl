@@ -9,6 +9,7 @@
   @test Translated(hc, Translation(0.05, 1.0, 0.0))(p) ≈ -0.15
 
   b1 = Box(P3(0.2, 0.4, 0.6))
+  @test convert(Box{3,Float32}, b1) ≈ Box(Point3f(0.2, 0.4, 0.6))
   @test b1 == Box(P3(-0.2, -0.4, -0.6), P3(0.2, 0.4, 0.6))
   @test centroid(b1) == zero(P3)
   b2 = b1 + P3(0.1, 0.7, 0.4)
