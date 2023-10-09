@@ -51,7 +51,7 @@ end
 Box(semidiag::Point) = Box(-semidiag, semidiag)
 
 Base.convert(::Type{Box{Dim,T}}, box::Box{Dim,T}) where {Dim,T} = box
-Base.convert(::Type{Box{Dim,T1}}, box::Box{Dim,T2}) where {Dim,T1,T2} = Box(convert(Point{Dim,T2}, box.min), convert(Point{Dim,T2}, box.max))
+Base.convert(::Type{Box{Dim,T1}}, box::Box{Dim,T2}) where {Dim,T1,T2} = Box(convert(Point{Dim,T1}, box.min), convert(Point{Dim,T1}, box.max))
 
 Base.:(-)(box::Box{Dim}, origin::Point{Dim}) where {Dim} = Box(box.min - origin, box.max - origin)
 Base.:(+)(box::Box{Dim}, origin::Point{Dim}) where {Dim} = Box(box.min + origin, box.max + origin)
