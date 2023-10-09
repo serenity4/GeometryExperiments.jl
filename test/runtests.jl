@@ -10,6 +10,7 @@ const P3 = Point3
 @testset "GeometryExperiments.jl" begin
   include("transforms.jl")
   include("primitives.jl")
+  include("pointsets.jl")
   include("projections.jl")
   include("curves.jl")
   include("granular_vector.jl")

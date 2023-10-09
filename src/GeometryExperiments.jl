@@ -1,6 +1,6 @@
 module GeometryExperiments
 
-using StaticArrays: SVector, @SVector
+using StaticArrays: SVector, @SVector, setindex
 using AbstractTrees
 using Dictionaries
 using LinearAlgebra
