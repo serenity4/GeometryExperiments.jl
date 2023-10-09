@@ -60,13 +60,14 @@ boundingelement(box::Box) = box
 const Circle{T} = Projection{2,HyperSphere{T}}
 const Square{T} = Projection{2,HyperCube{T}}
 
-struct BoxTransform{F,T} <: Transform
+struct BoxTransform{F<:Box,T<:Box} <: Transform
   from::F
   to::T
 end
 
 function (tr::BoxTransform)(p)
-  ratio = Scaling(radius(tr.to)) ∘ inv(Scaling(radius(tr.from)))
-  transf = Translation(origin(tr.to)) ∘ ratio ∘ Translation(-origin(tr.from))
+  c1, c2 = (centroid(tr.from), centroid(tr.to))
+  ratio = Scaling((tr.to.max - c2)) ∘ inv(Scaling(tr.from.max - c1))
+  transf = Translation(c2) ∘ ratio ∘ Translation(-c1)
   transf(p)
 end

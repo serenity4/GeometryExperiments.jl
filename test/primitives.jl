@@ -40,14 +40,15 @@
       @test p1 ∈ from
       p2 = tr(p1)
       @test p2 ∈ to
-      @test p2 == pres
+      @test p2 ≈ pres
     end
-    from = Translated(HyperCube(1.0), Translation(-5.0, -5.0, -5.0))
-    to = Translated(Scaled(HyperCube(2.0), Scaling(2.0, 3.0, 4.0)), Translation(7.0, 7.0, 7.0))
+    p1, p2, p3, p4 = P3[(10.0, 10.0, 10.0), (-5.0, -5.0, -5.0), (8.0, 12.0, 16.0), (7.0, 7.0, 7.0)]
+    from = Box(-p1 + p2, p1 + p2)
+    to = Box(-p3 + p4, p3 + p4)
     tr = BoxTransform(from, to)
-    test_mapping(origin(from), origin(to), from, to)
+    test_mapping(centroid(from), centroid(to), from, to)
 
-    for (p1, pres) in zip(PointSet(from, P3), PointSet(to, P3))
+    for (p1, pres) in zip(PointSet(from), PointSet(to))
       test_mapping(p1, pres, from, to)
     end
   end
