@@ -6,17 +6,13 @@
   @test radius(hc) == 0.2
   @test p ∉ hc
   @test origin(hc) ∈ hc
-
-  b1 = Box(0.2, Scaling(1.0, 2.0, 3.0))
-  @test b1 === Scaled(hc, Scaling(1.0, 2.0, 3.0))
-  b2 = Box(Scaling(0.2 .* Point(1.0, 2.0, 3.0)))
-  @test origin(b1) == origin(b2) && radius(b1) == radius(b2)
-  b3 = Translated(b2, Translation(0.4, 0.4, 0.4))
-  b4 = box(0.4 .+ Point(-0.2, -0.4, -0.6), 0.4 .+ Point(0.2, 0.4, 0.6))
-  @test origin(b4) ≈ origin(b3)
-  @test radius(b4) ≈ radius(b3)
-
   @test Translated(hc, Translation(0.05, 1.0, 0.0))(p) ≈ -0.15
+
+  b1 = Box(P3(0.2, 0.4, 0.6))
+  @test b1 == Box(P3(-0.2, -0.4, -0.6), P3(0.2, 0.4, 0.6))
+  @test centroid(b1) == zero(P3)
+  b2 = b1 + P3(0.1, 0.7, 0.4)
+  @test centroid(b2) ≈ centroid(b1) + P3(0.1, 0.7, 0.4)
 
   hc = Scaled(HyperCube(0.2), Scaling(1.0, 2.0))
   @test origin(hc) == Point(0.0, 0.0)

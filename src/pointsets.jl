@@ -9,7 +9,7 @@ Base.:(==)(x::PointSet, y::PointSet) = x.points == y.points
 
 (transf::Transform)(set::PointSet) = PointSet(map(transf, set))
 
-centroid(np::Primitive) = origin(np)
+centroid(p::Primitive) = origin(p)
 centroid(tr::Transformed) = tr.transf(centroid(tr.obj))
 centroid(set::PointSet) = sum(set) / length(set)
 centroid(args...) = centroid(PointSet(args...))
@@ -31,14 +31,11 @@ PointSet(points::Point...) = PointSet(promote(points...)...)
 PointSet(points::V) where {Dim,T,V<:SVector{<:Any,Point{Dim,T}}} = PointSet{Dim,T,V}(points)
 
 function boundingelement(set::PointSet{Dim}) where {Dim}
-  c = centroid(set)
-  coords = map(1:Dim) do i
-    maximum(getindex.(set, i))
-  end
-  scale = Scaling(coords - c)
-  Translated(Scaled(HyperCube(1.0), scale), Translation(c))
+  (min, max) = extrema(set.points)
+  Box(min, max)
 end
 
+PointSet(box::Box{Dim,T}) where {Dim,T} = PointSet(sdf(box), Point{Dim,T})
 @generated function PointSet(::Type{<:HyperCube}, P::Type{Point{Dim,T}}) where {Dim,T}
   idxs = CartesianIndices(ntuple(i -> -1:2:1, Dim))
   tuples = getproperty.(idxs, :I)

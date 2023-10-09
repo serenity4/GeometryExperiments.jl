@@ -42,13 +42,19 @@ Base.isapprox(x::Ellipsoid, y::Ellipsoid) = x.obj.radius .* x.transf.vec ≈ y.o
 
 Base.show(io::IO, elps::Ellipsoid{Dim,T}) where {Dim,T} = print(io, "Ellipsoid{$Dim, $T}($(elps.transf.vec .* elps.obj.radius))")
 
-# A box around the origin. This is not the same as `Meshes.Box`, it is missing the translation part.
-const Box{Dim,T} = Scaled{HyperCube{T},Dim,T}
-Box(radius::T, transf::Scaling{Dim,T}) where {Dim,T} = Box{Dim,T}(HyperCube(radius), transf)
-Box(semidiag::Scaling{Dim,T}) where {Dim,T} = Box{Dim,T}(HyperCube(norm(semidiag)), normalize(semidiag))
-function box(min, max)
-  Translated(Box(Scaling((max - min) / 2)), Translation((min + max) / 2))
+struct Box{Dim,T} <: Primitive{T}
+  min::Point{Dim,T}
+  max::Point{Dim,T}
 end
+
+Box(semidiag::Point) = Box(-semidiag, semidiag)
+
+Base.:(-)(box::Box{Dim}, origin::Point{Dim}) where {Dim} = Box(box.min - origin, box.max - origin)
+Base.:(+)(box::Box{Dim}, origin::Point{Dim}) where {Dim} = Box(box.min + origin, box.max + origin)
+
+sdf(box::Box) = Translated(HyperCube(box.max - centroid(box)), Translation(centroid(box)))
+centroid(box::Box) = (box.min + box.max) / 2
+boundingelement(box::Box) = box
 
 const Circle{T} = Projection{2,HyperSphere{T}}
 const Square{T} = Projection{2,HyperCube{T}}
