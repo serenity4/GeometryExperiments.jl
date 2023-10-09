@@ -17,6 +17,7 @@ radius(tr::Transformed{<:NormedPrimitive}) = tr.transf(radius(tr.obj)) - origin(
 
 Base.isapprox(x::NormedPrimitive, y::NormedPrimitive) = typeof(x) == typeof(y) && x.radius ≈ y.radius
 
+"Hypersphere centered around the origin"
 const HyperSphere{T} = NormedPrimitive{2,T}
 
 LinearAlgebra.norm(p::Point, ::Type{<:HyperSphere}) = hypot(p...)
