@@ -30,16 +30,7 @@ PointSet(points::T...) where {T<:Point} = PointSet(SVector{length(points),T}(col
 PointSet(points::Point...) = PointSet(promote(points...)...)
 PointSet(points::V) where {Dim,T,V<:SVector{<:Any,Point{Dim,T}}} = PointSet{Dim,T,V}(points)
 
-function boundingelement(set::PointSet{Dim,T}) where {Dim,T}
-  min = zero(Point{Dim,T})
-  max = zero(Point{Dim,T})
-  for i in 1:Dim
-    (mi, ma) = extrema(x -> getindex(x, i), set.points)
-    min = setindex(min, mi, i)
-    max = setindex(max, ma, i)
-  end
-  Box(min, max)
-end
+boundingelement(set::PointSet) = Box(compute_bounds(set.points)...)
 
 PointSet(box::Box{Dim,T}) where {Dim,T} = PointSet(sdf(box), Point{Dim,T})
 @generated function PointSet(::Type{<:HyperCube}, P::Type{Point{Dim,T}}) where {Dim,T}

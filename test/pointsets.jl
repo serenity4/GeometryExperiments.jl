@@ -6,22 +6,15 @@
   set = PointSet(P2[(0.0, 0.0), (1.0, 0.0), (0.0, 1.0), (1.0, 1.0)])
   @test centroid(set) == Point(0.5, 0.5)
   @test centroid(set) == centroid(Point(0.0, 0.0), Point(1.0, 0.0), Point(0.0, 1.0), Point(1.0, 1.0))
-  @test boundingelement(set) == Box(P2(0, 0), P2(1, 1))
-
-  set2 = PointSet(P2[(0.0, 0.5), (0.5, 0.0), (0.5, 1.0), (1.0, 0.5)])
-  @test boundingelement(set) == boundingelement(set2)
 
   set = PointSet(P2[(-1.0, -1.0), (1.0, -1.0), (-1.0, 1.0), (1.0, 1.0)])
-  @test boundingelement(set) == Box(P2(1, 1))
   @test Scaling(1.0, 1.0)(set) == set
   @test Translation(0.0, 0.0)(set) == set
   (Scaling(1.0, 1.0) ∘ Translation(0.0, 0.0))(set) == set
 
   hc = Translated(HyperCube(0.5), Translation(0.5, 0.5, 0.5))
   set = PointSet(hc, P3)
-  be = boundingelement(set)
-  @test isa(be, Box)
-  @test centroid(be) == 0.5 .* ones(P3)
+  @test centroid(set) == 0.5 .* ones(P3)
 
   @test PointSet(HyperCube, P2) == PointSet(P2[(-1, -1), (1, -1), (-1, 1), (1, 1)])
   @test PointSet(HyperCube(0.5), P2) == PointSet(P2[(-0.5, -0.5), (0.5, -0.5), (-0.5, 0.5), (0.5, 0.5)])

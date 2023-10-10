@@ -11,6 +11,7 @@ const P3 = Point3
   include("transforms.jl")
   include("primitives.jl")
   include("pointsets.jl")
+  include("boundingelement.jl")
   include("projections.jl")
   include("curves.jl")
   include("granular_vector.jl")

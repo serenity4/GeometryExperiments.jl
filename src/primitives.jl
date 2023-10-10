@@ -58,7 +58,24 @@ Base.:(+)(box::Box{Dim}, origin::Point{Dim}) where {Dim} = Box(box.min + origin,
 
 sdf(box::Box) = Translated(Scaled(HyperCube(1), Scaling(box.max - centroid(box))), Translation(centroid(box)))
 centroid(box::Box) = (box.min + box.max) / 2
+
 boundingelement(box::Box) = box
+boundingelement(x::Box, y::Box) = boundingelement(PointSet(@SVector [x.min, x.max, y.min, y.max]))
+function boundingelement(geometries)
+  init, rest = Iterators.peel(geometries)
+  foldl((x, y) -> boundingelement(x, boundingelement(y)), rest; init = boundingelement(init))
+end
+
+function compute_bounds(points::AbstractVector{P}) where {Dim,P<:Point{Dim}}
+  min = zero(P)
+  max = zero(P)
+  for i in 1:Dim
+    (mi, ma) = extrema(x -> getindex(x, i), points)
+    min = setindex(min, mi, i)
+    max = setindex(max, ma, i)
+  end
+  (min, max)
+end
 
 const Circle{T} = Projection{2,HyperSphere{T}}
 const Square{T} = Projection{2,HyperCube{T}}
