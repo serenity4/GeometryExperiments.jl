@@ -1,5 +1,6 @@
 using GeometryExperiments
 using GeometryExperiments: index, Point, Point2, Point2f, Box, Mesh
+using GLTF
 using Test
 using SymbolicGA: @ga
 

@@ -218,4 +218,10 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (-1, 1), (1, 1), (1, -1)], [(1, 2), (2, 
     @test isa(mesh, TriangleMesh)
     @test length(vertices(mesh)) == 4
   end
+
+  @testset "Mesh loading" begin
+    file = joinpath(pkgdir(GeometryExperiments), "test", "assets", "cube.gltf")
+    mesh = load_gltf(file)
+    @test isa(mesh, VertexMesh{TriangleList{UInt16},Point3f})
+  end
 end;
