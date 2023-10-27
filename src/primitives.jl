@@ -50,6 +50,18 @@ end
 
 Box(semidiag::Point) = Box(-semidiag, semidiag)
 
+function Base.getproperty(box::Box{2}, name::Symbol)
+  name === :width && return box.max[1] - box.min[1]
+  name === :height && return box.max[2] - box.min[2]
+  name === :bottom_left && return box.min
+  name === :bottom_right && return Point(box.max[1], box.min[1])
+  name === :top_left && return Point(box.min[1], box.max[1])
+  name === :top_right && return box.max
+  getfield(box, name)
+end
+
+Base.propertynames(box::Box{2}) = (:min, :max, :width, :height, :bottom_left, :bottom_right, :top_left, :top_right)
+
 Base.convert(::Type{Box{Dim,T}}, box::Box{Dim,T}) where {Dim,T} = box
 Base.convert(::Type{Box{Dim,T1}}, box::Box{Dim,T2}) where {Dim,T1,T2} = Box(convert(Point{Dim,T1}, box.min), convert(Point{Dim,T1}, box.max))
 

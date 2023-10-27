@@ -30,6 +30,12 @@
   end
 
   @testset "Boxes" begin
+    b = Box(P2(0.1, 0.2))
+    @test b.top_right == P2(0.1, 0.2)
+    @test b.bottom_left == P2(-0.1, -0.2)
+    @test b.width == 0.2
+    @test b.height == 0.4
+
     b1 = Box(P3(0.2, 0.4, 0.6))
     @test convert(Box{3,Float32}, b1) == Box(Point3f(0.2, 0.4, 0.6))
     @test b1 == Box(P3(-0.2, -0.4, -0.6), P3(0.2, 0.4, 0.6))
