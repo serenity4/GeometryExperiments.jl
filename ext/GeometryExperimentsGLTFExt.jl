@@ -5,6 +5,7 @@ using GeometryExperiments: parametric_dimension, primitive_topology
 using StaticArrays: SVector
 using Base64: base64decode
 using StyledStrings
+using PrecompileTools
 import GLTF
 
 import GeometryExperiments: load_gltf
@@ -118,6 +119,11 @@ function load_gltf(file::AbstractString)
   accessor = gltf.accessors[primitive.attributes["POSITION"]]
   position = read_data(gltf, accessor)
   VertexMesh(indices, position)
+end
+
+@compile_workload begin
+  file = joinpath(pkgdir(GeometryExperiments), "test", "assets", "cube.gltf")
+  load_gltf(file)
 end
 
 end # module

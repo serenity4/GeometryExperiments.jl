@@ -214,14 +214,23 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (-1, 1), (1, 1), (1, -1)], [(1, 2), (2, 
   end
 
   @testset "Triangle mesh" begin
-    mesh = TriangleMesh(TriangleStrip(1:4), PointSet(HyperCube{2}, Point2f))
+    set = PointSet(HyperCube{2}, Point2f)
+    points = collect(set)
+    mesh = TriangleMesh(TriangleStrip(1:4), points)
     @test isa(mesh, TriangleMesh)
     @test length(vertices(mesh)) == 4
+    mesh2 = TriangleMesh(points)
+    @test mesh2 == mesh2
+    @test mesh2 !== mesh
+    mesh3 = TriangleMesh(set)
+    @test mesh3 == mesh
+    verts = Vertex.(points)
+    @test TriangleMesh(verts) === TriangleMesh(verts)
   end
 
   @testset "Mesh loading" begin
     file = joinpath(pkgdir(GeometryExperiments), "test", "assets", "cube.gltf")
     mesh = load_gltf(file)
-    @test isa(mesh, VertexMesh{TriangleList{UInt16},Point3f})
+    @test isa(mesh, TriangleMesh{TriangleList{UInt16},Point3f})
   end
 end;

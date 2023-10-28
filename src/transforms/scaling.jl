@@ -13,7 +13,7 @@ Base.:(∘)(t1::Scaling, t2::Scaling) = Scaling(t1.vec .* t2.vec)
 Base.isapprox(x::Scaling, y::Scaling) = x.vec ≈ y.vec
 
 Base.inv(s::Scaling) = Scaling(inv.(s.vec))
-Base.identity(::Type{Scaling{Dim,T}}) where {Dim,T} = Scaling(@SVector ones(T, Dim))
+Base.one(::Type{Scaling{Dim,T}}) where {Dim,T} = Scaling(@SVector ones(T, Dim))
 
 const Scaled{O,Dim,T} = Transformed{O,Scaling{Dim,T}}
 Scaled(obj::O, transf::Scaling{Dim,T}) where {O,Dim,T} = Scaled{O,Dim,T}(obj, transf)
@@ -28,4 +28,4 @@ end
 Base.:(∘)(t1::UniformScaling, t2::UniformScaling) = UniformScaling(t1.factor * t2.factor)
 
 Base.inv(s::UniformScaling) = UniformScaling(inv(s.factor))
-Base.identity(::Type{UniformScaling{T}}) where {T} = UniformScaling(one(T))
+Base.one(::Type{UniformScaling{T}}) where {T} = UniformScaling(one(T))

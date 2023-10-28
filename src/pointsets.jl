@@ -2,6 +2,8 @@ struct PointSet{Dim,T,V<:AbstractVector{Point{Dim,T}}}
   points::V
 end
 
+Base.IteratorEltype(::PointSet) = Base.HasEltype()
+Base.eltype(set::PointSet{Dim,T}) where {Dim,T} = Point{Dim,T}
 Base.length(set::PointSet) = length(set.points)
 Base.iterate(set::PointSet) = iterate(set.points)
 Base.iterate(set::PointSet, state) = iterate(set.points, state)

@@ -69,28 +69,42 @@ function LineList(encoding::LineStrip, T = Int)
   LineList([SVector{2,T}(indices[i], indices[i + 1]) for i in 1:(length(indices) - 1)])
 end
 
+struct Vertex{L<:AbstractVector,T}
+  location::L
+  data::T
+end
+
+location(vertex::Vertex) = vertex.location
+
+Vertex(location) = Vertex(location, nothing)
+
 """
-Mesh represented with vertex and index data.
+Mesh represented with indexed vertices using a specific [`IndexEncoding`](@ref).
 """
-struct VertexMesh{I<:IndexEncoding,T,V<:AbstractVector{T}}
+@struct_hash_equal struct VertexMesh{I<:IndexEncoding,T,V<:AbstractVector{<:Vertex{T}}}
   indices::I
-  vertex_data::V
+  vertices::V
 end
 
-VertexMesh(vertex_data, ::Type{C}) where {C<:PrimitiveTopology} = VertexMesh(Strip{C}(1:length(vertex_data)), vertex_data)
-
-function VertexMesh(encoding::IndexEncoding, vertex_data)
-  VertexMesh{typeof(encoding),eltype(vertex_data),typeof(vertex_data)}(encoding, vertex_data)
-end
+VertexMesh(indices::IndexEncoding, vertices::AbstractVector{<:Point}) = VertexMesh(indices, Vertex.(vertices))
+VertexMesh(indices::IndexEncoding, vertices::PointSet) = VertexMesh(indices, Vertex.(vertices))
+VertexMesh(vertices, ::Type{C}) where {C<:PrimitiveTopology} = VertexMesh(Strip{C}(1:length(vertices)), vertices)
 
 function VertexMesh(mesh::Mesh)
   all(istri, faces(mesh)) || error("The mesh must be triangulated.")
   ishomogeneous(mesh) || error("Only homogeneous meshes are supported.")
-  vertex_data = collect(mesh.vertex_attributes)
-  @assert length(vertex_data) == nv(mesh)
+  verts = collect(mesh.vertex_attributes)
+  @assert length(verts) == nv(mesh)
 
   # Remap vertex indices into a contiguous range that starts from zero.
   vertex_index_map = Dictionary(index.(vertices(mesh)), 0:(nv(mesh) - 1))
   indices = TriangleList([SVector{3,Int}(vertex_index_map[index(prev)] for (; prev) in edge_cycle(mesh, face)) for face in faces(mesh)])
-  VertexMesh(indices, vertex_data)
+  VertexMesh(indices, verts)
 end
+
+const TriangleEncoding = Union{TriangleStrip,TriangleFan,TriangleList}
+const TriangleMesh{I<:TriangleEncoding,T,V} = VertexMesh{I,T,V}
+TriangleMesh(indices::TriangleEncoding, vertices) = VertexMesh(indices, vertices)
+TriangleMesh(vertices) = VertexMesh(vertices, TrianglePrimitive)
+
+vertices(mesh::VertexMesh) = mesh.vertices
