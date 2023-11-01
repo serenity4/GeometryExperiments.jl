@@ -192,45 +192,44 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (-1, 1), (1, 1), (1, -1)], [(1, 2), (2, 
   @test orientation(mesh_uv) === orient
 
   @testset "Mesh encodings" begin
-    strip = TriangleStrip(1:5)
-    list = TriangleList([(1, 2, 3), (2, 4, 3), (3, 4, 5)])
-    @test TriangleList(strip) == list
+    strip = MeshEncoding(MESH_TOPOLOGY_TRIANGLE_STRIP, 1:5)
+    list = MeshEncoding(MESH_TOPOLOGY_TRIANGLE_LIST, [(1, 2, 3), (2, 4, 3), (3, 4, 5)])
+    @test length(list.indices) == 9
+    @test list.indices == [1, 2, 3, 2, 4, 3, 3, 4, 5]
+    @test length(strip.indices) == 5
+    @test reencode(strip, list.topology) == list
 
-    fan = TriangleFan(1:5)
-    list = TriangleList([(1, 2, 3), (1, 3, 4), (1, 4, 5)])
-    @test GeometryExperiments.primitive_topology(typeof(fan)) == TrianglePrimitive
-    @test TriangleList(fan) == list
+    fan = MeshEncoding(MESH_TOPOLOGY_TRIANGLE_FAN, 1:5)
+    list = MeshEncoding(MESH_TOPOLOGY_TRIANGLE_LIST, [(1, 2, 3), (1, 3, 4), (1, 4, 5)])
+    @test length(fan.indices) == 5
+    @test reencode(fan, list.topology) == list
 
-    @test isa(VertexMesh(P2[(1.2, 1.4), (0.1, 0.2), (0.3, 0.4), (0.5, 0.2)], TrianglePrimitive), VertexMesh{<:TriangleStrip,P2})
-    @test isa(VertexMesh(fan, P2[(1.2, 1.4), (0.1, 0.2), (0.3, 0.4), (0.5, 0.2)]), VertexMesh{<:TriangleFan,P2})
-
-    strip = LineStrip(1:5)
-    @test GeometryExperiments.primitive_topology(typeof(strip)) == LinePrimitive
-    @test LineList(strip) == LineList([(1, 2), (2, 3), (3, 4), (4, 5)])
+    mesh = VertexMesh(P2[(1.2, 1.4), (0.1, 0.2), (0.3, 0.4), (0.5, 0.2)])
+    @test mesh.encoding.topology === MESH_TOPOLOGY_TRIANGLE_STRIP
+    mesh = VertexMesh(fan, P2[(1.2, 1.4), (0.1, 0.2), (0.3, 0.4), (0.5, 0.2)])
+    @test mesh.encoding === fan
 
     mesh = quad_mesh_tri()
     vmesh = VertexMesh(mesh)
-    @test vmesh.indices == TriangleList(Point{3,Int}[(0, 1, 2), (2, 3, 0)])
-  end
+    @test vmesh.encoding.indices == [1, 2, 3, 3, 4, 1]
+    @test vmesh.encoding.topology === MESH_TOPOLOGY_TRIANGLE_LIST
 
-  @testset "Triangle mesh" begin
     set = PointSet(HyperCube{2}, Point2f)
     points = collect(set)
-    mesh = TriangleMesh(TriangleStrip(1:4), points)
-    @test isa(mesh, TriangleMesh)
-    @test length(vertices(mesh)) == 4
-    mesh2 = TriangleMesh(points)
-    @test mesh2 == mesh2
-    @test mesh2 !== mesh
-    mesh3 = TriangleMesh(set)
+    mesh = VertexMesh(points)
+    @test mesh.encoding.topology === MESH_TOPOLOGY_TRIANGLE_STRIP
+    @test isa(mesh, VertexMesh{Int64,Point2f})
+    @test nv(mesh) == 4
+    mesh2 = VertexMesh(points)
+    @test mesh2 === mesh2
+    mesh3 = VertexMesh(set)
     @test mesh3 == mesh
-    verts = Vertex.(points)
-    @test TriangleMesh(verts) === TriangleMesh(verts)
+    @test mesh3 !== mesh
   end
 
   @testset "Mesh loading" begin
     file = joinpath(pkgdir(GeometryExperiments), "test", "assets", "cube.gltf")
     mesh = load_gltf(file)
-    @test isa(mesh, TriangleMesh{TriangleList{UInt16},Point3f})
+    @test isa(mesh, VertexMesh{UInt16,Point3f})
   end
 end;

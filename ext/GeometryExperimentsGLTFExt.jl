@@ -1,7 +1,6 @@
 module GeometryExperimentsGLTFExt
 
 using GeometryExperiments
-using GeometryExperiments: parametric_dimension, primitive_topology
 using StaticArrays: SVector
 using Base64: base64decode
 using StyledStrings
@@ -28,14 +27,13 @@ function data_type(type, ::Type{T}) where {T}
   error("Unknown data type `$type`")
 end
 
-function index_encoding(mode)
-  mode === GLTF.TRIANGLES && return TriangleList
-  mode === GLTF.LINES && return LineList
-  mode === GLTF.TRIANGLE_STRIP && return TriangleStrip
-  mode === GLTF.LINE_STRIP && return LineStrip
-  mode === GLTF.TRIANGLE_FAN && return TriangleFan
+function mesh_topology(mode)
+  mode === GLTF.TRIANGLES && return MESH_TOPOLOGY_TRIANGLE_LIST
+  mode === GLTF.TRIANGLE_STRIP && return MESH_TOPOLOGY_TRIANGLE_STRIP
+  mode === GLTF.TRIANGLE_FAN && return MESH_TOPOLOGY_TRIANGLE_FAN
   mode === LINE_LOOP && error("The `LINE_LOOP` primitive topology is not supported.")
   mode === POINTS && error("The `POINTS` primitive topology is not supported.")
+  mode in (GLTF.LINES, GLTF.LINE_STRIP) && error("Line topologies are not supported.")
   error("Unknown mode `$mode`")
 end
 
@@ -92,16 +90,10 @@ function read_index_data(gltf, primitive::GLTF.Primitive)
   read_data(gltf, accessor)
 end
 
-function read_index_encoding(gltf, primitive::GLTF.Primitive)
-  E = index_encoding(something(primitive.mode, GLTF.TRIANGLES))
-  index_data = read_index_data(gltf, primitive)
-  encode_indices(E, index_data)
-end
-
-function encode_indices(::Type{E}, index_data) where {E}
-  nd = parametric_dimension(primitive_topology(E))::Int
-  np = cld(length(index_data), nd)
-  E([SVector{nd,eltype(index_data)}(@view(index_data[(1 + nd * (i - 1)):(nd * i)])) for i in 1:np])
+function read_mesh_encoding(gltf, primitive::GLTF.Primitive)
+  topology = mesh_topology(something(primitive.mode, GLTF.TRIANGLES))
+  indices = read_index_data(gltf, primitive)
+  MeshEncoding(topology, indices)
 end
 
 function load_gltf(file::AbstractString)
@@ -113,12 +105,12 @@ function load_gltf(file::AbstractString)
   length(mesh.primitives) == 1 || error("In mesh, exactly one primitive is supported at the moment.")
   primitive = mesh.primitives[0]
   !isnothing(primitive.indices) || error("Only indexed geometries are supported at the moment.")
-  indices = read_index_encoding(gltf, primitive)
-  @debug "Found mesh named '$(mesh.name)' of topology $E with $(length(indices)) indices of type $(eltype(indices))"
+  encoding = read_mesh_encoding(gltf, primitive)
+  @debug "Found mesh named '$(mesh.name)' of topology $(encoding.topology) with $(length(encoding.indices)) indices of type $(eltype(encoding.indices))"
   haskey(primitive.attributes, "POSITION") || error("`POSITION` attribute is required but not present for primitive in mesh $(node.mesh)")
   accessor = gltf.accessors[primitive.attributes["POSITION"]]
   position = read_data(gltf, accessor)
-  VertexMesh(indices, position)
+  VertexMesh(encoding, position)
 end
 
 @compile_workload begin

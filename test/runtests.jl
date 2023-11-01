@@ -1,8 +1,9 @@
 using GeometryExperiments
 using GeometryExperiments: index, Point, Point2, Point2f, Box, Mesh
-using GLTF
 using Test
 using SymbolicGA: @ga
+
+import GLTF
 
 const GE = GeometryExperiments
 const P2 = Point2
