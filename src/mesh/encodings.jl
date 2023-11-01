@@ -4,14 +4,24 @@
   MESH_TOPOLOGY_TRIANGLE_FAN = 3
 end
 
+"""
+Way to connect the various elements of a mesh, encoding its connectivity using integer indices.
+"""
 @struct_hash_equal struct MeshEncoding{T<:Integer}
   topology::MeshTopology
   indices::Vector{T}
 end
+MeshEncoding(indices) = MeshEncoding(MESH_TOPOLOGY_TRIANGLE_LIST, indices)
+MeshEncoding(range::Union{AbstractRange,Base.LinearIndices}) = MeshEncoding(MESH_TOPOLOGY_TRIANGLE_STRIP, range)
 MeshEncoding(topology::MeshTopology, range::AbstractRange) = MeshEncoding(topology, collect(range))
 MeshEncoding(topology::MeshTopology, indices::AbstractVector{T}) where {T} = MeshEncoding(topology, convert(Vector{T}, indices))
 MeshEncoding(topology::MeshTopology, indices::AbstractVector{<:Tuple}) = MeshEncoding(topology, convert.(SVector, indices))
 MeshEncoding(topology::MeshTopology, indices::AbstractVector{<:SVector{3}}) = MeshEncoding(topology, collect(Iterators.flatten(indices)))
+
+function Base.convert(::Type{MeshEncoding{T1}}, encoding::MeshEncoding{T2}) where {T1<:Integer,T2<:Integer}
+  T1 === T2 && return encoding
+  MeshEncoding(encoding.topology, convert(Vector{T1}, encoding.indices))
+end
 
 function reencode(encoding::MeshEncoding, topology::MeshTopology)
   encoding.topology === topology && return encoding
@@ -48,7 +58,7 @@ function reencode_indices(indices::Vector{T}, from::MeshTopology, to::MeshTopolo
 end
 
 """
-Mesh represented with indexed vertices using a specific [`IndexEncoding`](@ref).
+Mesh represented with indexed vertices using a specific [`MeshEncoding`](@ref).
 """
 @struct_hash_equal struct VertexMesh{I,T,VA<:AbstractVector{T}}
   encoding::MeshEncoding{I}
@@ -56,8 +66,13 @@ Mesh represented with indexed vertices using a specific [`IndexEncoding`](@ref).
 end
 
 VertexMesh(encoding::MeshEncoding, vertices::PointSet) = VertexMesh(encoding, vertices.points)
-VertexMesh(indices::AbstractVector{T}, vertices) where {T<:Integer} = VertexMesh(MeshEncoding(MESH_TOPOLOGY_TRIANGLE_LIST), indices)
-VertexMesh(vertices) = VertexMesh(MeshEncoding(MESH_TOPOLOGY_TRIANGLE_STRIP, eachindex(vertices)), vertices)
+VertexMesh(indices::AbstractVector{T}, vertices) where {T<:Integer} = VertexMesh(MeshEncoding(indices), vertices)
+VertexMesh(vertices) = VertexMesh(MeshEncoding(eachindex(vertices)), vertices)
+
+function Base.convert(::Type{T}, mesh::VertexMesh{I2}) where {I1,T<:VertexMesh{I1},I2}
+  I1 === I2 && return mesh
+  VertexMesh(convert(MeshEncoding{I1}, mesh.encoding), mesh.vertex_attributes)
+end
 
 function VertexMesh(mesh::Mesh)
   all(istri, faces(mesh)) || error("The mesh must be triangulated.")

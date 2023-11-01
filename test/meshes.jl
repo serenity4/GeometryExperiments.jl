@@ -198,14 +198,21 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (-1, 1), (1, 1), (1, -1)], [(1, 2), (2, 
     @test list.indices == [1, 2, 3, 2, 4, 3, 3, 4, 5]
     @test length(strip.indices) == 5
     @test reencode(strip, list.topology) == list
+    @test MeshEncoding(1:5) == strip
 
     fan = MeshEncoding(MESH_TOPOLOGY_TRIANGLE_FAN, 1:5)
     list = MeshEncoding(MESH_TOPOLOGY_TRIANGLE_LIST, [(1, 2, 3), (1, 3, 4), (1, 4, 5)])
     @test length(fan.indices) == 5
     @test reencode(fan, list.topology) == list
 
+    encoding = MeshEncoding(1:10)
+    @test isa(encoding, MeshEncoding{Int})
+    encoding2 = convert(MeshEncoding{UInt32}, encoding)
+    @test encoding == encoding2
+    @test isa(encoding2, MeshEncoding{UInt32})
+
     mesh = VertexMesh(P2[(1.2, 1.4), (0.1, 0.2), (0.3, 0.4), (0.5, 0.2)])
-    @test mesh.encoding.topology === MESH_TOPOLOGY_TRIANGLE_STRIP
+    @test mesh.encoding == MeshEncoding(1:4)
     mesh = VertexMesh(fan, P2[(1.2, 1.4), (0.1, 0.2), (0.3, 0.4), (0.5, 0.2)])
     @test mesh.encoding === fan
 
@@ -220,6 +227,10 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (-1, 1), (1, 1), (1, -1)], [(1, 2), (2, 
     @test mesh.encoding.topology === MESH_TOPOLOGY_TRIANGLE_STRIP
     @test isa(mesh, VertexMesh{Int64,Point2f})
     @test nv(mesh) == 4
+    @test convert(VertexMesh{Int64}, mesh) === mesh
+    mesh_int32 = convert(VertexMesh{Int32}, mesh)
+    @test mesh_int32 == mesh
+    @test isa(mesh_int32, VertexMesh{Int32})
     mesh2 = VertexMesh(points)
     @test mesh2 === mesh2
     mesh3 = VertexMesh(set)
