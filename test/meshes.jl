@@ -240,7 +240,7 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (-1, 1), (1, 1), (1, -1)], [(1, 2), (2, 
 
   @testset "Mesh loading" begin
     file = joinpath(pkgdir(GeometryExperiments), "test", "assets", "cube.gltf")
-    mesh = load_gltf(file)
+    mesh = load_mesh_gltf(file)
     @test isa(mesh, VertexMesh{UInt16,Point3f})
   end
 end;

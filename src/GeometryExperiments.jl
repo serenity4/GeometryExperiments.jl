@@ -133,7 +133,7 @@ export
   VertexMesh,
   SubdivisionAlgorithm, UniformSubdivision,
   subdivide!, triangulate!,
-  load_gltf,
+  load_mesh_gltf,
 
   # camera
   PinholeCamera

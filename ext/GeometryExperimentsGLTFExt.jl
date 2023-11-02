@@ -7,7 +7,7 @@ using StyledStrings
 using PrecompileTools
 import GLTF
 
-import GeometryExperiments: load_gltf
+import GeometryExperiments: load_mesh_gltf, VertexMesh
 
 function component_type(type)
   type === GLTF.BYTE && return Int8
@@ -96,11 +96,13 @@ function read_mesh_encoding(gltf, primitive::GLTF.Primitive)
   MeshEncoding(topology, indices)
 end
 
-function load_gltf(file::AbstractString)
-  gltf = GLTF.load(file)
+function VertexMesh(gltf::GLTF.Object)
   scene = gltf.scenes[gltf.scene]
-  length(scene.nodes) == 1 || error("Exactly one scene node is supported at the moment.")
-  node = gltf.nodes[scene.nodes[1]]
+  mesh_indices = findall(x -> !isnothing(x.mesh), collect(gltf.nodes))
+  isempty(mesh_indices) && error("No mesh found.")
+  length(mesh_indices) > 1 && error("More than one mesh found.")
+  i = only(mesh_indices)
+  node = gltf.nodes[scene.nodes[i]]
   mesh = gltf.meshes[node.mesh]
   length(mesh.primitives) == 1 || error("In mesh, exactly one primitive is supported at the moment.")
   primitive = mesh.primitives[0]
@@ -113,9 +115,11 @@ function load_gltf(file::AbstractString)
   VertexMesh(encoding, position)
 end
 
+load_mesh_gltf(file::AbstractString) = VertexMesh(GLTF.load(file))
+
 @compile_workload begin
   file = joinpath(pkgdir(GeometryExperiments), "test", "assets", "cube.gltf")
-  load_gltf(file)
+  load_mesh_gltf(file)
 end
 
 end # module
