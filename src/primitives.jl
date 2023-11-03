@@ -48,7 +48,8 @@ Base.show(io::IO, elps::Ellipsoid{Dim,T}) where {Dim,T} = print(io, "Ellipsoid{$
   max::Point{Dim,T}
 end
 
-Box(semidiag::Point) = Box(-semidiag, semidiag)
+Box{Dim,T}(semidiag::Point) where {Dim,T} = Box{Dim,T}(-semidiag, semidiag)
+Box(semidiag::Point{Dim,T}) where {Dim,T} = Box{Dim,T}(semidiag)
 
 function Base.getproperty(box::Box{2}, name::Symbol)
   name === :width && return box.max[1] - box.min[1]
