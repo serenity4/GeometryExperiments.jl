@@ -67,18 +67,15 @@ Mesh represented with indexed vertices using a specific [`MeshEncoding`](@ref).
   vertex_data::VD
 end
 
-function VertexMesh(encoding::MeshEncoding, vertex_locations; vertex_normals = nothing, vertex_data = nothing)
+function VertexMesh(encoding, vertex_locations; vertex_normals = nothing, vertex_data = nothing)
+  !isa(encoding, MeshEncoding) && (encoding = MeshEncoding(encoding))
+  isa(vertex_locations, PointSet) && (vertex_locations = vertex_locations.points)
   VertexMesh(encoding, vertex_locations, vertex_normals, vertex_data)
 end
-VertexMesh(encoding::MeshEncoding, vertices::PointSet) = VertexMesh(encoding, vertices.points)
-VertexMesh(indices::AbstractVector{T}, vertices) where {T<:Integer} = VertexMesh(MeshEncoding(indices), vertices)
-VertexMesh(vertices) = VertexMesh(MeshEncoding(eachindex(vertices)), vertices)
+VertexMesh(vertex_locations) = VertexMesh(eachindex(vertex_locations), vertex_locations)
 
-function Base.convert(::Type{VertexMesh{I1}}, mesh::VertexMesh{I2}) where {I1,I2}
-  I1 === I2 && return mesh
-  encoding = convert(MeshEncoding{I1}, mesh.encoding)
-  VertexMesh(encoding, mesh.vertex_locations, mesh.vertex_normals, mesh.vertex_data)
-end
+Base.convert(::Type{VertexMesh{I}}, mesh::VertexMesh{<:Any,VL,VN,VD}) where {I,VL,VN,VD} = convert(VertexMesh{I,VL,VN,VD}, mesh)
+Base.convert(::Type{T}, mesh::VertexMesh) where {T<:VertexMesh} = T(mesh.encoding, mesh.vertex_locations, mesh.vertex_normals, mesh.vertex_data)
 
 function VertexMesh(mesh::Mesh; vertex_locations = nothing, vertex_normals = nothing, vertex_data = nothing)
   all(istri, faces(mesh)) || error("The mesh must be triangulated.")
