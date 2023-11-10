@@ -33,3 +33,32 @@ location(p::Point) = p
 centroid(mesh::Mesh, edge::MeshEdge) = centroid(location(mesh, mesh.vertices[edge.src]), location(mesh, mesh.vertices[edge.dst]))
 centroid(mesh::Mesh, face::MeshFace) = centroid((location(mesh, vertex) for vertex in vertices(mesh, face)))
 centroid(mesh::Mesh) = centroid((location(mesh, vertex) for vertex in vertices(mesh)))
+
+"Describe how vertex normals should be computed for a given mesh."
+abstract type SmoothingStrategy end
+
+# XXX
+struct SmoothingAuto <: SmoothingStrategy
+  angle::Float64
+end
+
+"Angle between `(O,x)` and `(O, y)` with `O` the origin of the Euclidean space."
+angle(x::Point, y::Point) = atan(x × y, x ⋅ y)
+
+"Compute vertex normals for a triangle mesh."
+function compute_vertex_normals(mesh::Mesh, smoothing = SmoothingAuto(0))
+  normals = Point3[]
+  for vertex in vertices(mesh)
+    value = zero(Point3)
+    for face in faces(mesh, vertex)
+      p₁, p₂, p₃ = (location(mesh, vertex) for vertex in vertices(mesh, face))
+      u, v = p₂ - p₁, p₃ - p₁
+      # FIXME: This is not correct.
+      if abs(angle(u, v)) > deg2rad(smoothing.angle)
+        value = value .+ u × v
+      end
+    end
+    push!(normals, normalize(value))
+  end
+  normals
+end

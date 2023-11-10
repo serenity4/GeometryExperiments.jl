@@ -60,21 +60,27 @@ end
 """
 Mesh represented with indexed vertices using a specific [`MeshEncoding`](@ref).
 """
-@struct_hash_equal struct VertexMesh{I,T,VA<:AbstractVector{T}}
+@struct_hash_equal struct VertexMesh{I,VL,VN,VD}
   encoding::MeshEncoding{I}
-  vertex_attributes::VA
+  vertex_locations::VL
+  vertex_normals::VN
+  vertex_data::VD
 end
 
+function VertexMesh(encoding::MeshEncoding, vertex_locations; vertex_normals = nothing, vertex_data = nothing)
+  VertexMesh(encoding, vertex_locations, vertex_normals, vertex_data)
+end
 VertexMesh(encoding::MeshEncoding, vertices::PointSet) = VertexMesh(encoding, vertices.points)
 VertexMesh(indices::AbstractVector{T}, vertices) where {T<:Integer} = VertexMesh(MeshEncoding(indices), vertices)
 VertexMesh(vertices) = VertexMesh(MeshEncoding(eachindex(vertices)), vertices)
 
-function Base.convert(::Type{T}, mesh::VertexMesh{I2}) where {I1,T<:VertexMesh{I1},I2}
+function Base.convert(::Type{VertexMesh{I1}}, mesh::VertexMesh{I2}) where {I1,I2}
   I1 === I2 && return mesh
-  VertexMesh(convert(MeshEncoding{I1}, mesh.encoding), mesh.vertex_attributes)
+  encoding = convert(MeshEncoding{I1}, mesh.encoding)
+  VertexMesh(encoding, mesh.vertex_locations, mesh.vertex_normals, mesh.vertex_data)
 end
 
-function VertexMesh(mesh::Mesh)
+function VertexMesh(mesh::Mesh; vertex_locations = nothing, vertex_normals = nothing, vertex_data = nothing)
   all(istri, faces(mesh)) || error("The mesh must be triangulated.")
   ishomogeneous(mesh) || error("Only homogeneous meshes are supported.")
   length(mesh.vertex_attributes) == nv(mesh) || error("Vertex data is missing from the mesh")
@@ -90,7 +96,11 @@ function VertexMesh(mesh::Mesh)
 
   encoding = MeshEncoding(MESH_TOPOLOGY_TRIANGLE_LIST, indices)
   vertex_attributes = collect(sortkeys(mesh.vertex_attributes))
-  VertexMesh(encoding, vertex_attributes)
+
+  isnothing(vertex_locations) && (vertex_locations = [location(vattr) for vattr in sortkeys(mesh.vertex_attributes)])
+  isnothing(vertex_normals) && (vertex_normals = compute_vertex_normals(mesh))
+
+  VertexMesh(encoding, vertex_locations, vertex_normals, vertex_data)
 end
 
-vertices(mesh::VertexMesh) = [location(attr) for attr in mesh.vertex_attributes]
+vertices(mesh::VertexMesh) = mesh.vertex_locations

@@ -68,6 +68,7 @@ attribute(mesh::Mesh, face::MeshFace) = mesh.face_attributes[index(face)]
 edges(mesh::Mesh, vertex::MeshVertex) = view(mesh.edges, vertex.edges)
 edges(mesh::Mesh, face::MeshFace) = view(mesh.edges, face.edges)
 faces(mesh::Mesh, edge::MeshEdge) = view(mesh.faces, edge.faces)
+faces(mesh::Mesh, vertex::MeshVertex) = unique!(foldl((x, y) -> append!(x, faces(mesh, y)), edges(mesh, vertex); init = MeshFace[]))
 
 vertices(mesh::Mesh) = mesh.vertices
 edges(mesh::Mesh) = mesh.edges

@@ -110,9 +110,9 @@ function VertexMesh(gltf::GLTF.Object)
   encoding = read_mesh_encoding(gltf, primitive)
   @debug "Found mesh named '$(mesh.name)' of topology $(encoding.topology) with $(length(encoding.indices)) indices of type $(eltype(encoding.indices))"
   haskey(primitive.attributes, "POSITION") || error("`POSITION` attribute is required but not present for primitive in mesh $(node.mesh)")
-  accessor = gltf.accessors[primitive.attributes["POSITION"]]
-  position = read_data(gltf, accessor)
-  VertexMesh(encoding, position)
+  vertex_locations = read_data(gltf, gltf.accessors[primitive.attributes["POSITION"]])
+  vertex_normals = haskey(primitive.attributes, "NORMAL") ? read_data(gltf, gltf.accessors[primitive.attributes["NORMAL"]]) : nothing
+  VertexMesh(encoding, vertex_locations; vertex_normals)
 end
 
 load_mesh_gltf(file::AbstractString) = VertexMesh(GLTF.load(file))

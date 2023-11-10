@@ -222,10 +222,12 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (-1, 1), (1, 1), (1, -1)], [(1, 2), (2, 
     @test vmesh.encoding.topology === MESH_TOPOLOGY_TRIANGLE_LIST
 
     set = PointSet(HyperCube{2}, Point2f)
+    mesh = VertexMesh(set)
+    @test isa(mesh, VertexMesh{Int64, <:SVector{4,Point2f}})
     points = collect(set)
     mesh = VertexMesh(points)
     @test mesh.encoding.topology === MESH_TOPOLOGY_TRIANGLE_STRIP
-    @test isa(mesh, VertexMesh{Int64,Point2f})
+    @test isa(mesh, VertexMesh{Int64,Vector{Point2f}})
     @test nv(mesh) == 4
     @test convert(VertexMesh{Int64}, mesh) === mesh
     mesh_int32 = convert(VertexMesh{Int32}, mesh)
@@ -241,6 +243,6 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (-1, 1), (1, 1), (1, -1)], [(1, 2), (2, 
   @testset "Mesh loading" begin
     file = joinpath(pkgdir(GeometryExperiments), "test", "assets", "cube.gltf")
     mesh = load_mesh_gltf(file)
-    @test isa(mesh, VertexMesh{UInt16,Point3f})
+    @test isa(mesh, VertexMesh{UInt16,<:AbstractArray{Point3f},<:AbstractArray{Point3f}})
   end
 end;
