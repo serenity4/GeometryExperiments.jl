@@ -96,14 +96,7 @@ function read_mesh_encoding(gltf, primitive::GLTF.Primitive)
   MeshEncoding(topology, indices)
 end
 
-function VertexMesh(gltf::GLTF.Object)
-  scene = gltf.scenes[gltf.scene]
-  mesh_indices = findall(x -> !isnothing(x.mesh), collect(gltf.nodes))
-  isempty(mesh_indices) && error("No mesh found.")
-  length(mesh_indices) > 1 && error("More than one mesh found.")
-  i = only(mesh_indices)
-  node = gltf.nodes[scene.nodes[i]]
-  mesh = gltf.meshes[node.mesh]
+function VertexMesh(gltf::GLTF.Object, mesh::GLTF.Mesh)
   length(mesh.primitives) == 1 || error("In mesh, exactly one primitive is supported at the moment.")
   primitive = mesh.primitives[0]
   !isnothing(primitive.indices) || error("Only indexed geometries are supported at the moment.")
@@ -113,6 +106,17 @@ function VertexMesh(gltf::GLTF.Object)
   vertex_locations = read_data(gltf, gltf.accessors[primitive.attributes["POSITION"]])
   vertex_normals = haskey(primitive.attributes, "NORMAL") ? read_data(gltf, gltf.accessors[primitive.attributes["NORMAL"]]) : nothing
   VertexMesh(encoding, vertex_locations; vertex_normals)
+end
+
+function VertexMesh(gltf::GLTF.Object)
+  scene = gltf.scenes[gltf.scene]
+  mesh_indices = findall(x -> !isnothing(x.mesh), collect(gltf.nodes))
+  isempty(mesh_indices) && error("No mesh found.")
+  length(mesh_indices) > 1 && error("More than one mesh found.")
+  i = only(mesh_indices)
+  node = gltf.nodes[scene.nodes[i]]
+  mesh = gltf.meshes[node.mesh]
+  VertexMesh(gltf, mesh)
 end
 
 load_mesh_gltf(file::AbstractString) = VertexMesh(GLTF.load(file))
