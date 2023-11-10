@@ -5,6 +5,7 @@ using StaticArrays: SVector
 using Base64: base64decode
 using StyledStrings
 using PrecompileTools
+using LinearAlgebra: diagm
 import GLTF
 
 import GeometryExperiments: load_mesh_gltf, VertexMesh
@@ -108,6 +109,19 @@ function VertexMesh(gltf::GLTF.Object, mesh::GLTF.Mesh)
   VertexMesh(encoding, vertex_locations; vertex_normals)
 end
 
+function VertexMesh(gltf::GLTF.Object, node::GLTF.Node)
+  !isnothing(node.mesh) || throw(ArgumentError("Node `$node` does not have a mesh component."))
+  mesh = gltf.meshes[node.mesh]
+  vmesh = VertexMesh(gltf, mesh)
+  # XXX: Apply transforms.
+  (!isnothing(node.rotation) && node.rotation[end] ≉ 1.0 ||
+   !isnothing(node.translation) && !all(iszero, node.translation) ||
+   !isnothing(node.scale) && !all(isone, node.scale) ||
+   !isnothing(node.matrix) && reshape(node.matrix, (4, 4)) ≉ diagm(ones(4))) &&
+    @warn "Node transformations are not yet supported and will be ignored"
+  vmesh
+end
+
 function VertexMesh(gltf::GLTF.Object)
   scene = gltf.scenes[gltf.scene]
   mesh_indices = findall(x -> !isnothing(x.mesh), collect(gltf.nodes))
@@ -115,8 +129,7 @@ function VertexMesh(gltf::GLTF.Object)
   length(mesh_indices) > 1 && error("More than one mesh found.")
   i = only(mesh_indices)
   node = gltf.nodes[scene.nodes[i]]
-  mesh = gltf.meshes[node.mesh]
-  VertexMesh(gltf, mesh)
+  VertexMesh(gltf, node)
 end
 
 load_mesh_gltf(file::AbstractString) = VertexMesh(GLTF.load(file))
