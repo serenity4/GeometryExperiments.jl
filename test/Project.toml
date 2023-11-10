@@ -1,6 +1,7 @@
 [deps]
-GeometryExperiments = "1147bd75-18e1-436d-adda-d58e854f897d"
 GLTF = "aeeaf58c-ab4d-11e9-3a9f-9b6bf58b5bc3"
+GeometryExperiments = "1147bd75-18e1-436d-adda-d58e854f897d"
 MakieCore = "20f20a25-4f0e-4fdf-b5d1-57303727442b"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 SymbolicGA = "be1275fb-6550-422f-8b88-a5943ccecfb8"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
