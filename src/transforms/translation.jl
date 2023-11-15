@@ -1,4 +1,4 @@
-struct Translation{Dim,T} <: Transform
+struct Translation{Dim,T} <: Transformation
   vec::Point{Dim,T}
 end
 Translation(vals::T...) where {T} = Translation(Point{length(vals),T}(vals))
@@ -15,3 +15,7 @@ Base.zero(::Type{Translation{Dim,T}}) where {Dim,T} = Translation(@SVector zeros
 
 const Translated{O,Dim,T} = Transformed{O,Translation{Dim,T}}
 Translated(obj::O, transf::Translation{Dim,T}) where {O,Dim,T} = Translated{O,Dim,T}(obj, transf)
+
+apply_translation(p::Point, translation::Translation) = translation(p)
+
+Base.convert(::Type{Translation{Dim,T}}, tr::Translation{Dim}) where {Dim,T} = Translation(convert(Point{Dim,T}, tr.vec))

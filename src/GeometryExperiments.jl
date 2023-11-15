@@ -56,17 +56,20 @@ include("camera.jl")
 @compile_workload @compile_traces "precompilation_traces.jl"
 
 export
-  Point,
+  Point, norm, normalize,
+  °, Degree,
 
   # transforms
-  Transform, Transformed,
-  Scaling, Scaled, UniformScaling,
-  Rotation, Rotated,
-  RotationType, Quaternion,
-  Translation, Translated,
+  Transformation, Transformed,
+  Scaling, Scaled, UniformScaling, apply_scaling,
+  Rotation, Rotated, apply_rotation,
+  RotationPlane, Quaternion,
+  Translation, Translated, apply_translation,
   ComposedTransform,
   BoxTransform,
   transforms,
+
+  Transform, apply_transform, apply_transform_inverse,
 
   # projections
   Projection,

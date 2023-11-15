@@ -10,7 +10,7 @@ Base.iterate(set::PointSet, state) = iterate(set.points, state)
 Base.keys(set::PointSet) = keys(set.points)
 Base.:(==)(x::PointSet, y::PointSet) = x.points == y.points
 
-(transf::Transform)(set::PointSet) = PointSet(map(transf, set))
+(transf::Transformation)(set::PointSet) = PointSet(map(transf, set))
 
 centroid(p::Primitive) = origin(p)
 centroid(tr::Transformed) = tr.transf(centroid(tr.obj))

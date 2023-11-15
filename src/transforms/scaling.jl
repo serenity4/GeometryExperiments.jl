@@ -1,4 +1,4 @@
-struct Scaling{Dim,T} <: Transform
+struct Scaling{Dim,T} <: Transformation
   vec::Point{Dim,T}
 end
 Scaling(vals::T...) where {T} = Scaling(Point{length(vals),T}(vals))
@@ -20,7 +20,7 @@ Scaled(obj::O, transf::Scaling{Dim,T}) where {O,Dim,T} = Scaled{O,Dim,T}(obj, tr
 
 Base.show(io::IO, s::Scaled{O,Dim,T}) where {O,Dim,T} = print(io, "Scaled{$O, $Dim, $T}($(s.obj), $(s.transf))")
 
-struct UniformScaling{T} <: Transform
+struct UniformScaling{T} <: Transformation
   factor::T
 end
 (s::UniformScaling)(p::AbstractVector) = s.factor .* p
@@ -29,3 +29,7 @@ Base.:(∘)(t1::UniformScaling, t2::UniformScaling) = UniformScaling(t1.factor *
 
 Base.inv(s::UniformScaling) = UniformScaling(inv(s.factor))
 Base.one(::Type{UniformScaling{T}}) where {T} = UniformScaling(one(T))
+
+apply_scaling(p::Point, scaling::Union{Scaling,UniformScaling}) = scaling(p)
+
+Base.convert(::Type{Scaling{Dim,T}}, sc::Scaling{Dim}) where {Dim,T} = Scaling(convert(Point{Dim,T}, sc.vec))

@@ -20,7 +20,32 @@
     @test one(UniformScaling{Float64})(Point(1.0, 2.0)) == Point(1.0, 2.0)
   end
 
-  @testset "Rotations" begin end
+  @testset "Rotations" begin
+    @testset "Rotation planes" begin
+      n = zero(Point3)
+      p = RotationPlane(n)
+      @test norm(p.u) == norm(p.v) == 1
+      @test RotationPlane((1, 0, 0)) == RotationPlane((0, 0, 1), (0, -1, 0))
+      @test RotationPlane((0, 0, 1)) == RotationPlane((0, -1, 0), (1, 0, 0))
+    end
+  
+    @testset "Quaternion" begin
+      rot = Quaternion()
+      @test iszero(rot)
+      @test rot == Rotation{3}()
+      plane = RotationPlane((1, 0, 0), (0, 1, 0))
+      rot = Quaternion(plane, 45°)
+      @test rot == Rotation(plane, 45°)
+      p = Point3(0.2, 0.2, 1.0)
+      p′ = apply_rotation(p, rot)
+      @test p′.z == p.z
+      @test p′[1:2] ≈ Point(0, 0.2sqrt(2))
+      @test apply_rotation(p, Quaternion(plane, 0)) == p
+      rot = Quaternion(RotationPlane(Tuple(rand(3))), 1.5)
+      @test apply_rotation(p, rot) ≉ p
+      @test apply_rotation(apply_rotation(p, rot), inv(rot)) ≈ p
+    end
+  end
 
   @testset "Composition" begin
     @test Translation(2.0, 3.0) ∘ Translation(1.0, 2.0) == Translation(3.0, 5.0)
@@ -35,5 +60,17 @@
 
     p = Point(1.0, 2.0)
     @test (inv(tr) ∘ tr)(p) == p
+  end
+
+  @testset "Transforms" begin
+    tr = Transform()
+    p = Point(1.2, 1.6, -0.1)
+    @test apply_transform(p, tr) ≈ p
+    tr = Transform(Translation(-0.2, -0.6, 1.3), Rotation(RotationPlane((0.5, 0.4, 0.3)), 40°), Scaling(1.3, 2.0, 5.0))
+    p′ = apply_transform(p, tr)
+    p′′ = apply_transform_inverse(p′, tr)
+    @test p′′ ≈ p
+    trf32 = convert(Transform{3,Float32,Quaternion{Float32}}, tr)
+    @test apply_transform_inverse(apply_transform(p, trf32), trf32) ≈ p rtol=1e-7
   end
 end;

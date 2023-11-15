@@ -93,7 +93,7 @@ end
 const Circle{T} = Projection{2,HyperSphere{T}}
 const Square{T} = Projection{2,HyperCube{T}}
 
-struct BoxTransform{F<:Box,T<:Box} <: Transform
+struct BoxTransform{F<:Box,T<:Box} <: Transformation
   from::F
   to::T
 end
