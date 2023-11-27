@@ -26,6 +26,11 @@ struct Quaternion{T} <: Rotation{3,T}
 end
 
 Base.getindex(q::Quaternion, i::Integer) = q.coords[i]
+function Base.isapprox(x::Quaternion, y::Quaternion)
+  qx, qy = x.coords, y.coords
+  isapprox(qx[1], qy[1]) || isapprox(qx[1], -qy[1]) || return false
+  isapprox(@view(qx[2:4]), @view(qy[2:4])) || isapprox(@view(qx[2:4]), -@view(qy[2:4]))
+end
 
 Base.inv(q::Quaternion{T}) where {T} = Rotation(@ga 3 SVector{4,T} inverse(q::(0 + 2))::(0 + 2))
 Base.zero(::Type{T}) where {T<:Quaternion} = T()
@@ -35,10 +40,16 @@ Base.one(q::Quaternion) = zero(typeof(q))
 
 Quaternion(coords::AbstractArray) = Quaternion(SVector{length(coords),eltype(coords)}(coords))
 Quaternion{T}(q₀, q₁, q₂, q₃) where {T} = Quaternion(SVector{4,T}(q₀, q₁, q₂, q₃))
-Quaternion(q₀, q₁, q₂, q₃) = Quaternion(SVector(x, y, z, w))
+Quaternion(q₀, q₁, q₂, q₃) = Quaternion(SVector(q₀, q₁, q₂, q₃))
 Quaternion(axis) = Quaternion(RotationPlane(normalize(axis)), norm(axis))
 Quaternion{T}() where {T} = Quaternion{T}(one(T), zero(T), zero(T), zero(T))
 Quaternion() = Quaternion{Float64}()
+
+LinearAlgebra.norm(q::Quaternion) = norm(q.coords)
+LinearAlgebra.normalize(q::Quaternion) = Quaternion(q.coords ./ norm(q))
+
+rand(rng::AbstractRNG, ::SamplerType{Quaternion}) = rand(rng, Quaternion{Float64})
+rand(rng::AbstractRNG, ::SamplerType{Quaternion{T}}) where {T} = normalize(Quaternion{T}(rand(rng, SVector{4,T})))
 
 function Quaternion(plane::RotationPlane{3,T}, angle::Real) where {T}
   # Define rotation bivector which encodes a rotation in the given plane by the specified angle.
@@ -48,13 +59,61 @@ function Quaternion(plane::RotationPlane{3,T}, angle::Real) where {T}
   Quaternion(q)
 end
 
+# From https://d3cw3dd2w32x2b.cloudfront.net/wp-content/uploads/2015/01/matrix-to-quat.pdf.
+function Quaternion(matrix::SMatrix{3, 3})
+  q = if matrix[3, 3] < 0
+    if matrix[1, 1] > matrix[2, 2]
+      Quaternion(
+        matrix[2, 3] - matrix[3, 2],
+        1 + matrix[1, 1] - matrix[2, 2] - matrix[3, 3],
+        matrix[1, 2] + matrix[2, 1],
+        matrix[3, 1] + matrix[1, 3],
+      )
+    else
+      Quaternion(
+        matrix[3, 1] - matrix[1, 3],
+        matrix[1, 2] + matrix[2, 1],
+        1 - matrix[1, 1] + matrix[2, 2] - matrix[3, 3],
+        matrix[2, 3] + matrix[3, 2],
+      )
+    end
+  else
+    if matrix[1, 1] < matrix[2, 2]
+      Quaternion(
+        matrix[1, 2] - matrix[2, 1],
+        matrix[3, 1] + matrix[1, 3],
+        matrix[2, 3] + matrix[3, 2],
+        1 - matrix[1, 1] - matrix[2, 2] + matrix[3, 3],
+      )
+    else
+      Quaternion(
+        1 + matrix[1, 1] + matrix[2, 2] + matrix[3, 3],
+        matrix[2, 3] - matrix[3, 2],
+        matrix[3, 1] - matrix[1, 3],
+        matrix[1, 2] - matrix[2, 1],
+      )
+    end
+  end
+  normalize(q)
+end
+
+function SMatrix{3,3}(q::Quaternion)
+  q₀, q₁, q₂, q₃ = q.coords
+  @SMatrix [
+    2(q₀^2 + q₁^2) - 1 2(q₁*q₂ - q₀*q₃) 2(q₁*q₃ + q₀*q₂);
+    2(q₁*q₂ + q₀*q₃) 2(q₀^2 + q₂^2) - 1 2(q₂*q₃ - q₀*q₁);
+    2(q₁*q₃ - q₀*q₂) 2(q₂*q₃ + q₀*q₁) 2(q₀^2 + q₃^2) - 1;
+  ]
+end
+
 Rotation(axis) = Quaternion(axis)
 Rotation(plane::RotationPlane{3}, angle::Real) = Quaternion(plane, angle)
 Rotation{3,T}() where {T} = Quaternion{T}()
 Rotation{3}() = Quaternion()
 
-function apply_rotation(p::Point{3}, q::Quaternion)
-  @ga 3 SVector{3} begin
+function apply_rotation(p, q::Quaternion)
+  @assert length(p) == 3
+  @ga 3 typeof(p) begin
     q::(0 + 2)
     inverse(q) ⟑ p::1 ⟑ q
   end

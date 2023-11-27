@@ -44,6 +44,12 @@
       rot = Quaternion(RotationPlane(Tuple(rand(3))), 1.5)
       @test apply_rotation(p, rot) ≉ p
       @test apply_rotation(apply_rotation(p, rot), inv(rot)) ≈ p
+
+      for i in 1:100
+        q = rand(Quaternion)
+        matrix = SMatrix{3,3}(q)
+        @test Quaternion(matrix) ≈ q
+      end
     end
   end
 
@@ -72,5 +78,20 @@
     @test p′′ ≈ p
     trf32 = convert(Transform{3,Float32,Quaternion{Float32}}, tr)
     @test apply_transform_inverse(apply_transform(p, trf32), trf32) ≈ p rtol=1e-7
+
+    for i in 1:100
+      tr = rand(Transform{3})
+      matrix = SMatrix{4,4}(tr)
+      tr2 = Transform(matrix)
+      @test tr2 ≈ tr
+      p = rand(Point3)
+      p1 = apply_transform(p, tr)
+      p2 = euclidean(matrix * Point4(p..., 1))
+      @test_broken p1 ≈ p2
+      p1_inv = apply_transform_inverse(p1, tr)
+      p2_inv = euclidean(matrix \ Point4(p2..., 1))
+      @test p1_inv ≈ p
+      @test p2_inv ≈ p
+    end
   end
 end;

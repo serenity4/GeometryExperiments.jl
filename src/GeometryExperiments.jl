@@ -1,6 +1,9 @@
 module GeometryExperiments
 
-using StaticArrays: SVector, @SVector, setindex
+using Random: AbstractRNG, SamplerType
+import Random: rand
+using StaticArrays: SMatrix, @SMatrix, MMatrix, SVector, @SVector, setindex
+import StaticArrays: SMatrix
 using AbstractTrees
 using Dictionaries
 using LinearAlgebra

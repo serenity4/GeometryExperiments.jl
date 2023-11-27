@@ -1,4 +1,4 @@
-struct Scaling{Dim,T} <: Transformation
+@struct_isapprox struct Scaling{Dim,T} <: Transformation
   vec::Point{Dim,T}
 end
 Scaling(vals::T...) where {T} = Scaling(Point{length(vals),T}(vals))
@@ -10,7 +10,8 @@ LinearAlgebra.normalize(s::Scaling) = Scaling(normalize(s.vec))
 
 Base.:(∘)(t1::Scaling, t2::Scaling) = Scaling(t1.vec .* t2.vec)
 
-Base.isapprox(x::Scaling, y::Scaling) = x.vec ≈ y.vec
+rand(rng::AbstractRNG, ::SamplerType{Scaling{Dim}}) where {Dim} = rand(rng, Scaling{Dim,Float64})
+rand(rng::AbstractRNG, ::SamplerType{Scaling{Dim,T}}) where {Dim,T} = Scaling(rand(rng, SVector{Dim,T}))
 
 Base.inv(s::Scaling) = Scaling(inv.(s.vec))
 Base.one(::Type{Scaling{Dim,T}}) where {Dim,T} = Scaling(@SVector ones(T, Dim))
@@ -30,6 +31,6 @@ Base.:(∘)(t1::UniformScaling, t2::UniformScaling) = UniformScaling(t1.factor *
 Base.inv(s::UniformScaling) = UniformScaling(inv(s.factor))
 Base.one(::Type{UniformScaling{T}}) where {T} = UniformScaling(one(T))
 
-apply_scaling(p::Point, scaling::Union{Scaling,UniformScaling}) = scaling(p)
+apply_scaling(p, scaling::Union{Scaling,UniformScaling}) = scaling(p)
 
 Base.convert(::Type{Scaling{Dim,T}}, sc::Scaling{Dim}) where {Dim,T} = Scaling(convert(Point{Dim,T}, sc.vec))

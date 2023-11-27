@@ -1,4 +1,4 @@
-euclidean(kvec::KVector{1,<:Any,D}) where {D} = kvec[begin:(end - 1)] ./ kvec[end]
+euclidean(vec) = vec[begin:(end - 1)] ./ vec[end]
 
 abstract type AlgebraicEntity end
 
