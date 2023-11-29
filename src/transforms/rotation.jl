@@ -26,6 +26,18 @@ struct Quaternion{T} <: Rotation{3,T}
 end
 
 Base.getindex(q::Quaternion, i::Integer) = q.coords[i]
+Base.iterate(q::Quaternion) = iterate(q.coords)
+Base.iterate(q::Quaternion, state) = iterate(q.coords, state)
+Base.length(q::Quaternion) = length(q.coords)
+
+function Base.getproperty(q::Quaternion, name::Symbol)
+  name === :w && return q[1]
+  name === :x && return q[2]
+  name === :y && return q[3]
+  name === :z && return q[4]
+  return getfield(q, name)
+end
+
 function Base.isapprox(x::Quaternion, y::Quaternion)
   qx, qy = x.coords, y.coords
   isapprox(qx[1], qy[1]) || isapprox(qx[1], -qy[1]) || return false
@@ -55,8 +67,9 @@ function Quaternion(plane::RotationPlane{3,T}, angle::Real) where {T}
   # Define rotation bivector which encodes a rotation in the given plane by the specified angle.
   ϕ = @ga 3 SVector{3} angle::0 ⟑ (plane.u::1 ∧ plane.v::1)
   # Define rotation generator to be applied to perform the operation.
-  q = @ga 3 SVector{4} exp((ϕ::2) / $(2one(T))::0)::(0 + 2)
-  Quaternion(q)
+  scalar, bivector... = @ga 3 SVector{4} exp((ϕ::2) / $(2one(T))::0)::(0 + 2)
+  pure_part = @ga 3 Tuple dual(bivector::2)::1
+  Quaternion(scalar, pure_part...)
 end
 
 # From https://d3cw3dd2w32x2b.cloudfront.net/wp-content/uploads/2015/01/matrix-to-quat.pdf.
@@ -97,8 +110,9 @@ function Quaternion(matrix::SMatrix{3, 3})
   normalize(q)
 end
 
+# https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation
 function SMatrix{3,3}(q::Quaternion)
-  q₀, q₁, q₂, q₃ = q.coords
+  q₀, q₁, q₂, q₃ = normalize(q)
   @SMatrix [
     2(q₀^2 + q₁^2) - 1 2(q₁*q₂ - q₀*q₃) 2(q₁*q₃ + q₀*q₂);
     2(q₁*q₂ + q₀*q₃) 2(q₀^2 + q₂^2) - 1 2(q₂*q₃ - q₀*q₁);
@@ -112,9 +126,9 @@ Rotation{3,T}() where {T} = Quaternion{T}()
 Rotation{3}() = Quaternion()
 
 function apply_rotation(p, q::Quaternion)
-  @assert length(p) == 3
+  length(p) == 3 || throw(ArgumentError("Expected 3-component vector in rotation by quaternion, got `$p` with length $(length(p))"))
   @ga 3 typeof(p) begin
-    q::(0 + 2)
+    q = q.w::e + inverse_dual(q.x::e1 + q.y::e2 + q.z::e3)
     inverse(q) ⟑ p::1 ⟑ q
   end
 end

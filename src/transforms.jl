@@ -60,11 +60,14 @@ Transform{3,T}(; translation = zero(Translation{3,T}), rotation = zero(Quaternio
 Transform{3}(; kwargs...) = Transform{3,Float64}(; kwargs...)
 Transform(; kwargs...) = Transform{3}(; kwargs...)
 
-function Transform(matrix::SMatrix{4,4})
+Transform(matrix::SMatrix{4,4}) = Transform{3}(matrix)
+Transform{3}(matrix::SMatrix{4,4,T}) where {T} = Transform{3,T}(matrix)
+
+function Transform{3,T}(matrix::SMatrix{4,4}) where {T}
   one_to_three = @SVector [1, 2, 3]
   translation = Translation(matrix[one_to_three, 4])
   rotation, scaling = extract_rotation_and_scale(matrix)
-  Transform(translation, rotation, scaling)
+  Transform{3,T,Quaternion{T}}(translation, rotation, scaling)
 end
 
 # Uses the polar decomposition technique (https://en.wikipedia.org/wiki/Polar_decomposition)

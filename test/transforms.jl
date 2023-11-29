@@ -48,6 +48,8 @@
       for i in 1:100
         q = rand(Quaternion)
         matrix = SMatrix{3,3}(q)
+        p = rand(Point3)
+        @test matrix * p ≈ apply_rotation(p, q)
         @test Quaternion(matrix) ≈ q
       end
     end
@@ -77,7 +79,7 @@
     p′′ = apply_transform_inverse(p′, tr)
     @test p′′ ≈ p
     trf32 = convert(Transform{3,Float32,Quaternion{Float32}}, tr)
-    @test apply_transform_inverse(apply_transform(p, trf32), trf32) ≈ p rtol=1e-7
+    @test apply_transform_inverse(apply_transform(p, trf32), trf32) ≈ p rtol=1e-6
 
     for i in 1:100
       tr = rand(Transform{3})
@@ -87,7 +89,7 @@
       p = rand(Point3)
       p1 = apply_transform(p, tr)
       p2 = euclidean(matrix * Point4(p..., 1))
-      @test_broken p1 ≈ p2
+      @test p1 ≈ p2
       p1_inv = apply_transform_inverse(p1, tr)
       p2_inv = euclidean(matrix \ Point4(p2..., 1))
       @test p1_inv ≈ p

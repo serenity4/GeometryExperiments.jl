@@ -1,14 +1,14 @@
 module GeometryExperimentsGLTFExt
 
 using GeometryExperiments
-using StaticArrays: SVector
+using StaticArrays: SVector, SMatrix
 using Base64: base64decode
 using StyledStrings
 using PrecompileTools
 using LinearAlgebra: diagm
 import GLTF
 
-import GeometryExperiments: load_mesh_gltf, VertexMesh
+import GeometryExperiments: load_mesh_gltf, VertexMesh, Transform
 
 function component_type(type)
   type === GLTF.BYTE && return Int8
@@ -55,6 +55,24 @@ function read_data(buffer::GLTF.Buffer)
     binary_file = uri[(data_sep + 1):end]
     read(binary_file)
   end
+end
+
+function Transform(node::GLTF.Node)
+  if !isnothing(node.matrix)
+    if length(node.matrix) ≠ 16
+      @warn "Expected 16-component list for matrix data, got list with length $(length(node.matrix))"
+      return Transform{3,Float32}()
+    end
+    # It is not impossible that we have shear and/or perspective projection,
+    # but the spec only specifies that we get a matrix for a composed scaling, rotation and translation.
+    # XXX: Have more checks for that.
+    matrix = SMatrix{4,4}(node.matrix)
+    return Transform(matrix)
+  end
+  translation = Translation(node.translation)
+  rotation = Rotation(node.rotation)
+  scaling = Scaling(node.scale)
+  Transform{3,Float32}(translation, rotation, scaling)
 end
 
 function read_data(buffer::GLTF.Buffer, buffer_view::GLTF.BufferView)
@@ -113,12 +131,9 @@ function VertexMesh(gltf::GLTF.Object, node::GLTF.Node)
   !isnothing(node.mesh) || throw(ArgumentError("Node `$node` does not have a mesh component."))
   mesh = gltf.meshes[node.mesh]
   vmesh = VertexMesh(gltf, mesh)
-  # XXX: Apply transforms.
-  (!isnothing(node.rotation) && node.rotation[end] ≉ 1.0 ||
-   !isnothing(node.translation) && !all(iszero, node.translation) ||
-   !isnothing(node.scale) && !all(isone, node.scale) ||
-   !isnothing(node.matrix) && reshape(node.matrix, (4, 4)) ≉ diagm(ones(4))) &&
-    @warn "Node transformations are not yet supported and will be ignored"
+  tr = Transform(node)
+  # XXX: Apply the transform to the node.
+  tr ≉ Transform{3,Float32}() && error("Non-identity GLTF node transforms not supported yet")
   vmesh
 end
 
