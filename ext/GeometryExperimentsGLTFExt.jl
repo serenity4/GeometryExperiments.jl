@@ -8,7 +8,7 @@ using PrecompileTools
 using LinearAlgebra: diagm
 import GLTF
 
-import GeometryExperiments: load_mesh_gltf, VertexMesh, Transform
+import GeometryExperiments: VertexMesh, Transform
 
 function component_type(type)
   type === GLTF.BYTE && return Int8
@@ -57,22 +57,25 @@ function read_data(buffer::GLTF.Buffer)
   end
 end
 
-function Transform(node::GLTF.Node)
-  if !isnothing(node.matrix)
-    if length(node.matrix) ≠ 16
-      @warn "Expected 16-component list for matrix data, got list with length $(length(node.matrix))"
-      return Transform{3,Float32}()
+Transform(node::GLTF.Node) = @something(read_transform(node), Transform{3,Float32}())
+
+function read_transform(node::GLTF.Node)
+  matrix, translation, rotation, scale = getfield.(Ref(node), (:matrix, :translation, :rotation, :scale))
+  if !isnothing(matrix)
+    if length(matrix) ≠ 16
+      @warn "Expected 16-component list for matrix data, got list with length $(length(matrix))"
+      return nothing
     end
     # It is not impossible that we have shear and/or perspective projection,
     # but the spec only specifies that we get a matrix for a composed scaling, rotation and translation.
-    # XXX: Have more checks for that.
-    matrix = SMatrix{4,4}(node.matrix)
+    matrix = SMatrix{4,4}(matrix)
     return Transform(matrix)
   end
-  translation = Translation(node.translation)
-  rotation = Rotation(node.rotation)
-  scaling = Scaling(node.scale)
-  Transform{3,Float32}(translation, rotation, scaling)
+  isnothing(translation) && isnothing(rotation) && isnothing(scale) && return nothing
+  translation = isnothing(translation) ? Translation{3,Float32}() : Translation(translation)
+  rotation = isnothing(rotation) ? Quaternion{Float32}() : Rotation(rotation)
+  scaling = isnothing(scale) ? Scaling{3,Float32}() : Scaling(scale)
+  Transform{3,Float32,Quaternion{Float32}}(translation, rotation, scaling)
 end
 
 function read_data(buffer::GLTF.Buffer, buffer_view::GLTF.BufferView)
@@ -127,14 +130,15 @@ function VertexMesh(gltf::GLTF.Object, mesh::GLTF.Mesh)
   VertexMesh(encoding, vertex_locations; vertex_normals)
 end
 
+"""
+Read a GLTF node as a [`VertexMesh`](@ref).
+
+Note that any transform present on the node *will not be applied* to the mesh vertices.
+"""
 function VertexMesh(gltf::GLTF.Object, node::GLTF.Node)
   !isnothing(node.mesh) || throw(ArgumentError("Node `$node` does not have a mesh component."))
   mesh = gltf.meshes[node.mesh]
-  vmesh = VertexMesh(gltf, mesh)
-  tr = Transform(node)
-  # XXX: Apply the transform to the node.
-  tr ≉ Transform{3,Float32}() && error("Non-identity GLTF node transforms not supported yet")
-  vmesh
+  VertexMesh(gltf, mesh)
 end
 
 function VertexMesh(gltf::GLTF.Object)
@@ -147,11 +151,10 @@ function VertexMesh(gltf::GLTF.Object)
   VertexMesh(gltf, node)
 end
 
-load_mesh_gltf(file::AbstractString) = VertexMesh(GLTF.load(file))
-
 @compile_workload begin
   file = joinpath(pkgdir(GeometryExperiments), "test", "assets", "cube.gltf")
-  load_mesh_gltf(file)
+  gltf = GLTF.load(file)
+  mesh = VertexMesh(gltf)
 end
 
 end # module

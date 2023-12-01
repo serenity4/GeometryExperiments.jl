@@ -52,7 +52,6 @@ include("mesh/iteration.jl")
 include("mesh/encodings.jl")
 include("mesh/subdivide.jl")
 include("mesh/triangulate.jl")
-include("mesh/loading.jl")
 
 include("camera.jl")
 
@@ -139,7 +138,6 @@ export
   VertexMesh,
   SubdivisionAlgorithm, UniformSubdivision,
   subdivide!, triangulate!,
-  load_mesh_gltf,
 
   # camera
   PinholeCamera

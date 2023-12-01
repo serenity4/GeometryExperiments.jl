@@ -239,10 +239,4 @@ quad_mesh_tri() = Mesh{P2}(P2[(-1, -1), (-1, 1), (1, 1), (1, -1)], [(1, 2), (2, 
     @test mesh3 == mesh
     @test mesh3 !== mesh
   end
-
-  @testset "Mesh loading" begin
-    file = joinpath(pkgdir(GeometryExperiments), "test", "assets", "cube.gltf")
-    mesh = load_mesh_gltf(file)
-    @test isa(mesh, VertexMesh{UInt16,<:AbstractArray{Point3f},<:AbstractArray{Point3f}})
-  end
 end;

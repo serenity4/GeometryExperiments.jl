@@ -13,8 +13,9 @@ Base.:(∘)(t1::Scaling, t2::Scaling) = Scaling(t1.vec .* t2.vec)
 rand(rng::AbstractRNG, ::SamplerType{Scaling{Dim}}) where {Dim} = rand(rng, Scaling{Dim,Float64})
 rand(rng::AbstractRNG, ::SamplerType{Scaling{Dim,T}}) where {Dim,T} = Scaling(rand(rng, SVector{Dim,T}))
 
+Scaling{Dim,T}() where {Dim,T} = Scaling{Dim,T}(@SVector ones(T, Dim))
 Base.inv(s::Scaling) = Scaling(inv.(s.vec))
-Base.one(::Type{Scaling{Dim,T}}) where {Dim,T} = Scaling(@SVector ones(T, Dim))
+Base.one(::Type{Scaling{Dim,T}}) where {Dim,T} = Scaling{Dim,T}()
 
 const Scaled{O,Dim,T} = Transformed{O,Scaling{Dim,T}}
 Scaled(obj::O, transf::Scaling{Dim,T}) where {O,Dim,T} = Scaled{O,Dim,T}(obj, transf)

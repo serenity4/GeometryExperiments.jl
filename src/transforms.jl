@@ -65,9 +65,15 @@ Transform{3}(matrix::SMatrix{4,4,T}) where {T} = Transform{3,T}(matrix)
 
 function Transform{3,T}(matrix::SMatrix{4,4}) where {T}
   one_to_three = @SVector [1, 2, 3]
+  assert_has_no_projective_transform(matrix)
   translation = Translation(matrix[one_to_three, 4])
   rotation, scaling = extract_rotation_and_scale(matrix)
   Transform{3,T,Quaternion{T}}(translation, rotation, scaling)
+end
+
+function assert_has_no_projective_transform(matrix::SMatrix{4,4})
+  matrix[4, @SVector [1, 2, 3]] ≈ @SVector(zeros(eltype(matrix), 3)) && return true
+  error("Expected 4x4 without matrix without projective transform, found non-zero projective transform components")
 end
 
 # Uses the polar decomposition technique (https://en.wikipedia.org/wiki/Polar_decomposition)

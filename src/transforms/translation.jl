@@ -11,8 +11,9 @@ Base.:∘(t1::Translation, t2::Translation) = Translation(t1.vec .+ t2.vec)
 rand(rng::AbstractRNG, ::SamplerType{Translation{Dim}}) where {Dim} = rand(rng, Translation{Dim,Float64})
 rand(rng::AbstractRNG, ::SamplerType{Translation{Dim,T}}) where {Dim,T} = Translation(rand(rng, SVector{Dim,T}))
 
+Translation{Dim,T}() where {Dim,T} = Translation{Dim,T}(@SVector zeros(T, Dim))
 Base.inv(tr::Translation) = Translation(-tr.vec)
-Base.zero(::Type{Translation{Dim,T}}) where {Dim,T} = Translation(@SVector zeros(T, Dim))
+Base.zero(::Type{Translation{Dim,T}}) where {Dim,T} = Translation{Dim,T}()
 
 const Translated{O,Dim,T} = Transformed{O,Translation{Dim,T}}
 Translated(obj::O, transf::Translation{Dim,T}) where {O,Dim,T} = Translated{O,Dim,T}(obj, transf)

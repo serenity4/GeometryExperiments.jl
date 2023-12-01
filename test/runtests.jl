@@ -21,4 +21,5 @@ const P3 = Point3
   include("meshes.jl")
   include("intersections.jl")
   include("camera.jl")
+  include("gltf.jl")
 end;
