@@ -31,11 +31,11 @@ Base.iterate(q::Quaternion, state) = iterate(q.coords, state)
 Base.length(q::Quaternion) = length(q.coords)
 
 function Base.getproperty(q::Quaternion, name::Symbol)
-  name === :w && return q[1]
-  name === :x && return q[2]
-  name === :y && return q[3]
-  name === :z && return q[4]
-  return getfield(q, name)
+  name === :w && return getfield(q, :coords)[1]
+  name === :x && return getfield(q, :coords)[2]
+  name === :y && return getfield(q, :coords)[3]
+  name === :z && return getfield(q, :coords)[4]
+  getfield(q, name)
 end
 
 function Base.isapprox(x::Quaternion, y::Quaternion)
