@@ -1,6 +1,8 @@
 @struct_isapprox struct Scaling{Dim,T} <: Transformation
   vec::Point{Dim,T}
 end
+Scaling{T}(vals::T...) where {T} = Scaling(Point{length(vals),T}(vals))
+Scaling{T}(vals...) where {T} = Scaling{T}(convert.(T, vals)...)
 Scaling(vals::T...) where {T} = Scaling(Point{length(vals),T}(vals))
 Scaling(vec::AbstractVector) = Scaling(Point{length(vec),eltype(vec)}(vec))
 (s::Scaling)(p::AbstractVector) = s.vec .* p

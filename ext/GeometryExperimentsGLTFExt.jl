@@ -73,7 +73,7 @@ function read_transform(node::GLTF.Node)
   end
   isnothing(translation) && isnothing(rotation) && isnothing(scale) && return nothing
   translation = isnothing(translation) ? Translation{3,Float32}() : Translation(translation)
-  rotation = isnothing(rotation) ? Quaternion{Float32}() : Rotation(rotation)
+  rotation = isnothing(rotation) ? Quaternion{Float32}() : Quaternion{Float32}(rotation[4], rotation[1], rotation[2], rotation[3])
   scaling = isnothing(scale) ? Scaling{3,Float32}() : Scaling(scale)
   Transform{3,Float32,Quaternion{Float32}}(translation, rotation, scaling)
 end

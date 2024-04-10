@@ -21,6 +21,7 @@ function RotationPlane(normal::Point{3,T}) where {T}
   RotationPlane(u, v)
 end
 
+"Quaternion, using an WXYZ convention (real part first, then pure part)."
 struct Quaternion{T} <: Rotation{3,T}
   coords::SVector{4,T}
 end
@@ -38,10 +39,10 @@ function Base.getproperty(q::Quaternion, name::Symbol)
   getfield(q, name)
 end
 
-function Base.isapprox(x::Quaternion, y::Quaternion)
-  qx, qy = x.coords, y.coords
-  isapprox(qx[1], qy[1]) || isapprox(qx[1], -qy[1]) || return false
-  isapprox(@view(qx[2:4]), @view(qy[2:4])) || isapprox(@view(qx[2:4]), -@view(qy[2:4]))
+function Base.isapprox(x::Quaternion, y::Quaternion; kwargs...)
+  isapprox(x.w, y.w; kwargs...) || isapprox(x.w, -y.w; kwargs...) || return false
+  Δx, Δy = x.coords, y.coords
+  isapprox(@view(Δx[2:4]), @view(Δy[2:4]); kwargs...) || isapprox(@view(Δx[2:4]), -@view(Δy[2:4]); kwargs...)
 end
 
 Base.inv(q::Quaternion{T}) where {T} = Rotation(@ga 3 SVector{4,T} inverse(q::(0 + 2))::(0 + 2))
@@ -134,3 +135,4 @@ function apply_rotation(p, q::Quaternion)
 end
 
 Base.convert(::Type{Quaternion{T}}, q::Quaternion) where {T} = Quaternion(convert(SVector{4,T}, q.coords))
+Base.convert(::Type{Rotation{3,T}}, q::Quaternion) where {T} = convert(Quaternion{T}, q)

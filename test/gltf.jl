@@ -21,16 +21,19 @@ load_gltf(filename) = GLTF.load(gltf_file(filename))
 
     light, camera, sphere = blob.nodes
 
-    @test Transform(light) === Transform{3,Float32}(;
-      translation = Translation(4.025627613067627, 4.5642242431640625, -0.28052377700805664),
-      rotation = Quaternion{Float32}(-0.28416627645492554, 0.7269423007965088, 0.34203392267227173, 0.5232754945755005),
-    )
-    @test Transform(camera) === Transform{3,Float32}(;
-      translation = Translation(4.119870662689209, 3.0265700817108154, 4.373751640319824),
-      rotation = Quaternion{Float32}(-0.17110589146614075, 0.3430515229701996, 0.0637064203619957, 0.9214012026786804)
-    )
-    @test Transform(sphere) === Transform{3,Float32}(;
-      translation = Translation(0.8281484246253967, 0.8672217130661011, 0.3270725607872009)
-    )
+    tr = Transform(light)
+    @test tr.translation === Translation{Float32}(4.0256276, 4.5642242, -0.28052378)
+    @test tr.rotation ≈ Quaternion{Float32}(-0.28416627645492554, 0.7269423007965088, 0.34203392267227173, 0.5232754945755005)
+    @test tr.scaling === one(Scaling{3,Float32})
+
+    tr = Transform(camera)
+    @test tr.translation === Translation{Float32}(4.1198707, 3.02657, 4.3737516)
+    @test tr.rotation ≈ Quaternion{Float32}(-0.17110589146614075, 0.3430515229701996, 0.0637064203619957, 0.9214012026786804)
+    @test tr.scaling === one(Scaling{3,Float32})
+
+    tr = Transform(sphere)
+    @test tr.translation === Translation{Float32}(0.8281484, 0.8672217, 0.32707256)
+    @test tr.rotation ≈ zero(Quaternion{Float32})
+    @test tr.scaling === one(Scaling{3,Float32})
   end
 end;

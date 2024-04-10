@@ -53,6 +53,10 @@ To apply the inverse of this transform to a point, use `apply_transform_inverse(
   rotation::R
   scaling::Scaling{Dim,T}
 end
+function Transform(translation::Translation{Dim,T1}, rotation::Rotation{Dim,T2}, scaling::Scaling{Dim,T3}) where {Dim,T1,T2,T3}
+  T = promote_type(T1, T2, T3)
+  Transform(convert(Translation{Dim,T}, translation), convert(Rotation{Dim,T}, rotation), convert(Scaling{Dim,T}, scaling))
+end
 
 Base.isapprox(x::Transform, y::Transform) = isapprox(x.translation, y.translation) && isapprox(x.rotation, y.rotation) && isapprox(x.scaling, y.scaling)
 

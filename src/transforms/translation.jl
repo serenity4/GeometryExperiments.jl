@@ -1,6 +1,8 @@
 @struct_isapprox struct Translation{Dim,T} <: Transformation
   vec::Point{Dim,T}
 end
+Translation{T}(vals::T...) where {T} = Translation(Point{length(vals),T}(vals))
+Translation{T}(vals...) where {T} = Translation{T}(convert.(T, vals)...)
 Translation(vals::T...) where {T} = Translation(Point{length(vals),T}(vals))
 Translation(vec::AbstractVector) = Translation(Point{length(vec),eltype(vec)}(vec))
 (t::Translation)(p::AbstractVector) = t.vec + p
