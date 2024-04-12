@@ -58,6 +58,10 @@ function Transform(translation::Translation{Dim,T1}, rotation::Rotation{Dim,T2},
   Transform(convert(Translation{Dim,T}, translation), convert(Rotation{Dim,T}, rotation), convert(Scaling{Dim,T}, scaling))
 end
 
+apply_rotation(p, transform::Transform) = apply_rotation(p, transform.rotation)
+apply_translation(p, transform::Transform) = apply_translation(p, transform.translation)
+apply_scaling(p, transform::Transform) = apply_rotation(p, transform.rotation)
+
 Base.isapprox(x::Transform, y::Transform) = isapprox(x.translation, y.translation) && isapprox(x.rotation, y.rotation) && isapprox(x.scaling, y.scaling)
 
 Transform{3,T}(; translation = zero(Translation{3,T}), rotation = zero(Quaternion{T}), scaling = one(Scaling{3,T})) where {T} = Transform{3,T,typeof(rotation)}(translation, rotation, scaling)
