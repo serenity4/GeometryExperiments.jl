@@ -52,6 +52,14 @@
         @test matrix * p ≈ apply_rotation(p, q)
         @test Quaternion(matrix) ≈ q
       end
+
+      for i in 1:100
+        from = rand(Point3)
+        to = rand(Point3)
+        q = Rotation(from, to)
+        @test normalize(apply_rotation(from, q)) ≈ normalize(to)
+        @test normalize(apply_rotation(to, inv(q))) ≈ normalize(from)
+      end
     end
   end
 

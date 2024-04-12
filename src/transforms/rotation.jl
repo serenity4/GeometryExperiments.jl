@@ -68,9 +68,22 @@ function Quaternion(plane::RotationPlane{3,T}, angle::Real) where {T}
   # Define rotation bivector which encodes a rotation in the given plane by the specified angle.
   ϕ = @ga 3 SVector{3} angle::0 ⟑ (plane.u::1 ∧ plane.v::1)
   # Define rotation generator to be applied to perform the operation.
-  scalar, bivector... = @ga 3 SVector{4} exp((ϕ::2) / $(2one(T))::0)::(0 + 2)
+  quaternion_from_rotor(@ga 3 SVector{4} exp((ϕ::2) / $(2one(T))::0)::(0 + 2))
+end
+
+function quaternion_from_rotor(rotor::SVector{4})
+  scalar, bivector... = rotor
   pure_part = @ga 3 Tuple dual(bivector::2)::1
   Quaternion(scalar, pure_part...)
+end
+
+Quaternion(from::Point{3}, to::Point{3}) = Quaternion(promote(from, to)...)
+function Quaternion(from::Point{3,T}, to::Point{3,T}) where {T}
+  from, to = normalize(from), normalize(to)
+  # Adding 1::e halves the angle of rotation, that would otherwise be `2 * angle(from, to)`.
+  # We'll normalize afterwards just in case.
+  q = quaternion_from_rotor(@ga 3 SVector{4} (from::1 ⟑ to::1 + 1::e)::(0 + 2))
+  normalize(q)
 end
 
 # From https://d3cw3dd2w32x2b.cloudfront.net/wp-content/uploads/2015/01/matrix-to-quat.pdf.
@@ -123,6 +136,7 @@ end
 
 Rotation(axis) = Quaternion(axis)
 Rotation(plane::RotationPlane{3}, angle::Real) = Quaternion(plane, angle)
+Rotation(from::Point{3}, to::Point{3}) = Quaternion(from, to)
 Rotation{3,T}() where {T} = Quaternion{T}()
 Rotation{3}() = Quaternion()
 
