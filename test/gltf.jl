@@ -23,12 +23,12 @@ load_gltf(filename) = GLTF.load(gltf_file(filename))
 
     tr = Transform(light)
     @test tr.translation === Translation{Float32}(4.0256276, 4.5642242, -0.28052378)
-    @test tr.rotation ≈ Quaternion{Float32}(-0.28416627645492554, 0.7269423007965088, 0.34203392267227173, 0.5232754945755005)
+    @test tr.rotation ≈ Quaternion{Float32}(0.5232754945755005, -0.28416627645492554, 0.7269423007965088, 0.34203392267227173)
     @test tr.scaling === one(Scaling{3,Float32})
 
     tr = Transform(camera)
     @test tr.translation === Translation{Float32}(4.1198707, 3.02657, 4.3737516)
-    @test tr.rotation ≈ Quaternion{Float32}(-0.17110589146614075, 0.3430515229701996, 0.0637064203619957, 0.9214012026786804)
+    @test tr.rotation ≈ Quaternion{Float32}(0.9214012026786804, -0.17110589146614075, 0.3430515229701996, 0.0637064203619957)
     @test tr.scaling === one(Scaling{3,Float32})
 
     tr = Transform(sphere)

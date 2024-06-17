@@ -51,7 +51,11 @@ Base.one(::Type{T}) where {T<:Quaternion} = T()
 Base.zero(q::Quaternion) = zero(typeof(q))
 Base.one(q::Quaternion) = zero(typeof(q))
 
-Quaternion(coords::AbstractArray) = Quaternion(SVector{length(coords),eltype(coords)}(coords))
+function Quaternion(coords::AbstractArray)
+  length(coords) == 3 && return @invoke Quaternion(coords::Any)
+  length(coords) == 4 || error("Expected 4 coordinates, got $(length(coords)) coordinates instead")
+  Quaternion(SVector{4,eltype(coords)}(coords))
+end
 Quaternion{T}(q₀, q₁, q₂, q₃) where {T} = Quaternion(SVector{4,T}(q₀, q₁, q₂, q₃))
 Quaternion(q₀, q₁, q₂, q₃) = Quaternion(SVector(q₀, q₁, q₂, q₃))
 Quaternion(axis) = Quaternion(RotationPlane(normalize(axis)), norm(axis))
