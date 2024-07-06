@@ -1,7 +1,7 @@
 name = "GeometryExperiments"
 uuid = "1147bd75-18e1-436d-adda-d58e854f897d"
 authors = ["Cédric Belmant"]
-version = "0.4.4"
+version = "0.4.5"
 
 [deps]
 AbstractTrees = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
@@ -29,7 +29,7 @@ GeometryExperimentsMakieCoreExt = "MakieCore"
 [compat]
 Base64 = "1"
 CompileTraces = "1"
-GLTF = "0.3"
+GLTF = "0.3, 0.4"
 MakieCore = "0.6"
 PrecompileTools = "1"
 StyledStrings = "1"
