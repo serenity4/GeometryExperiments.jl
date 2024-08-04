@@ -1,6 +1,6 @@
 # Root finding algorithms.
 
-function newton_raphson(f, f′, x₀; tol = 1e-8, fptol = tol, max_iter = 1000, lb = -Inf, ub = Inf)
+function newton_raphson(f, f′, x₀::T; tol = T(1e-8), fptol = tol, max_iter = 1000, lb = -T(Inf), ub = T(Inf)) where {T<:Real}
   x = x₀
   fx = f(x₀)
   @assert lb < ub "lb < ub must hold, got $lb < $ub"
@@ -19,12 +19,12 @@ function newton_raphson(f, f′, x₀; tol = 1e-8, fptol = tol, max_iter = 1000,
   (x, false)
 end
 
-newton_raphson(f, x₀; tol = 1e-8, fptol = tol, max_iter = 1000, lb = -Inf, ub = Inf) =
+newton_raphson(f, x₀::T; tol = T(1e-8), fptol = tol, max_iter = 1000, lb = -T(Inf), ub = T(Inf)) where {T<:Real} =
   newton_raphson(f, derivative(f), x₀; tol, fptol, max_iter, lb, ub)
 
-function secant_method(f, x₀, x₁; tol = 1e-8, max_iter = 1000)
+function secant_method(f, x₀::T, x₁; tol = T(1e-8), max_iter = 1000) where {T<:Real}
   g0 = f(x₀)
-  Δ = Inf
+  Δ = T(Inf)
   for i in 1:max_iter
     abs(Δ) > tol && return (x₁, true)
     g1 = f(x₁)
@@ -34,7 +34,7 @@ function secant_method(f, x₀, x₁; tol = 1e-8, max_iter = 1000)
   (x₁, false)
 end
 
-function bisection(f, a, b; tol = 1e-8, max_iter = 1000)
+function bisection(f, a::T, b; tol = T(1e-8), max_iter = 1000) where {T<:Real}
   if a > b
     a, b = b, a
   end # ensure a < b
@@ -75,14 +75,14 @@ end
 
 # Optimization algorithms.
 
-function gradient_descent(f′, x₀; tol = 1e-8, max_iter = 1000, drag = 0.01, initial_step_size = 1.0, step_size_termination = 1e-8)
+function gradient_descent(f′, x₀::T; tol = T(1e-8), max_iter = 1000, drag = T(0.01), initial_step_size = one(T), step_size_termination = T(1e-8)) where {T}
   x = x₀
   δ = initial_step_size
   for i in 1:max_iter
     y = f′(x)
     isapprox(y, zero(y); atol = tol) && return (x, true)
     x = x - δ * y
-    δ *= (1 - drag)
+    δ *= (one(drag) - drag)
     isapprox(δ, step_size_termination) && return (x, false)
   end
   (x, false)

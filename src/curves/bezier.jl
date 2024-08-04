@@ -115,12 +115,12 @@ function projection_parameter(curve::BezierCurve, p::Point{2,T}) where {T}
   #   end
   # end
 
-  ((a, b), converged) = bisection(orthogonality_condition, 0.0, 1.0; max_iter = 3)
+  ((a, b), converged) = bisection(orthogonality_condition, zero(T), one(T); max_iter = 3)
   t = (a + b) / 2
   if !converged
-    (t, converged) = newton_raphson(orthogonality_condition, t; lb = 0.0, ub = 1.0, max_iter = 10)
+    (t, converged) = newton_raphson(orthogonality_condition, t; lb = zero(T), ub = one(T), max_iter = 10)
     if !converged
-      ((a, b), converged) = bisection(orthogonality_condition, 0.0, 1.0; max_iter = 100)
+      ((a, b), converged) = bisection(orthogonality_condition, zero(T), one(T); max_iter = 100)
       t = (a + b) / 2
     end
   end
@@ -131,7 +131,7 @@ function projection_parameter(curve::BezierCurve, p::Point{2,T}) where {T}
   # If that is the case, return the relevant endpoint.
   (dmin, i) = findmin(cp -> distance_squared(cp, p), endpoints(curve))
 
-  dmin < d && return i - 1.0
+  dmin < d && return i - one(T)
   t
 end
 
@@ -141,7 +141,7 @@ function Base.intersect(bezier::BezierCurve, line::Line{2,T}) where {T}
   # Uses part of the technique from GPU-Centered Font Rendering Directly from Glyph Outlines, E. Lengyel, 2017.
   direction = Point{2,T}((@pga2 weight(line::2))[2:3])
   α = atan(direction[2], direction[1])
-  rotor = @ga 2 exp(-((-0.5α)::e̅))
+  rotor = @ga 2 exp(-(($(T(-0.5))*α)::e̅))
   origin = projection(line, zero(Point{2,T}))
 
   points = (point -> @ga 2 Point{2,T} (point::1 - origin::1) << rotor::(0, 2)).(bezier.points)
@@ -166,12 +166,12 @@ function classify_bezier_curve(points)
 end
 
 function compute_roots(a, b, c)
-  if isapprox(a, zero(a), atol = 1e-7)
+  T = typeof(a)
+  if isapprox(a, zero(a), atol = T(1e-7))
     t₁ = t₂ = c / 2b
     return (t₁, t₂)
   end
   Δ = b^2 - a * c
-  T = typeof(a)
   Δ < 0 && return (T(NaN), T(NaN))
   δ = sqrt(Δ)
   t₁ = (b - δ) / a

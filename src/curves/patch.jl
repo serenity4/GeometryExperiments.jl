@@ -35,11 +35,11 @@ Base.eachindex(patch::Patch) = firstindex(patch):lastindex(patch)
 
 Base.getindex(patch::Patch{C}, i::Int) where {C} = C(curve_points(patch, i))
 
-function (patch::Patch{C})(t) where {C}
+function (patch::Patch{C})(t::T) where {C,T<:Real}
   nc = length(patch)
-  i = 1 + clamp(Int(t ÷ (1 / nc)), 0, nc - 1)
+  i = 1 + clamp(Int(t ÷ (one(T) / nc)), 0, nc - 1)
   curve = patch[i]
-  curve(nc * (t - (i - 1) / nc))
+  curve(nc * (t - (i - one(T)) / nc))
 end
 
 function curve_points(patch::Patch, i::Int)
