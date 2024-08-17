@@ -55,8 +55,8 @@ function Base.getproperty(box::Box{2}, name::Symbol)
   name === :width && return box.max[1] - box.min[1]
   name === :height && return box.max[2] - box.min[2]
   name === :bottom_left && return box.min
-  name === :bottom_right && return Point(box.max[1], box.min[1])
-  name === :top_left && return Point(box.min[1], box.max[1])
+  name === :bottom_right && return Point(box.max[1], box.min[2])
+  name === :top_left && return Point(box.min[1], box.max[2])
   name === :top_right && return box.max
   getfield(box, name)
 end
