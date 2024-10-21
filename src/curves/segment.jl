@@ -16,3 +16,5 @@ function coordinate(segment::Segment{2}, p::Point{2})
 end
 
 (segment::Segment)(t) = lerp(segment.a, segment.b, t)
+
+centroid(segment::Segment) = segment(0.5)
