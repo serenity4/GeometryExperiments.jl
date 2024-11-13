@@ -69,6 +69,7 @@ Base.convert(::Type{Box{Dim,T1}}, box::Box{Dim,T2}) where {Dim,T1,T2} = Box(conv
 Base.:(-)(box::Box{Dim}, origin::Point{Dim}) where {Dim} = Box(box.min - origin, box.max - origin)
 Base.:(+)(box::Box{Dim}, origin::Point{Dim}) where {Dim} = Box(box.min + origin, box.max + origin)
 
+sdf(box::Box) = Translated(Scaled(HyperCube(1), Scaling(box.max - centroid(box))), Translation(centroid(box)))
 centroid(box::Box) = (box.min + box.max) / 2
 
 boundingelement(box::Box) = box
