@@ -43,6 +43,15 @@
     b2 = b1 + P3(0.1, 0.7, 0.4)
     @test centroid(b1) in b1
     @test centroid(b2) ≈ centroid(b1) + P3(0.1, 0.7, 0.4)
+
+    b = Box(P2(Inf, Inf))
+    @test b == Box(P2(-Inf, -Inf), P2(Inf, Inf))
+    @test all(isnan, centroid(b))
+    @test in(zero(P2), b)
+    @test in(P2(100000, 100000), b)
+    @test in(P2(-100000, -100000), b)
+    @test in(P2(Inf, Inf), b)
+    @test in(P2(-Inf, -Inf), b)
   end
 
   @testset "Advanced transforms" begin
