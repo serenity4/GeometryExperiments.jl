@@ -29,7 +29,7 @@ GeometryExperimentsMakieCoreExt = "MakieCore"
 [compat]
 Base64 = "1"
 CompileTraces = "1"
-GLTF = "0.3, 0.4"
+GLTF = "0.4"
 MakieCore = "0.6"
 PrecompileTools = "1"
 StyledStrings = "1"
