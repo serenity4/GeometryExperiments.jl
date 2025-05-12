@@ -45,8 +45,13 @@ function Base.isapprox(x::Quaternion, y::Quaternion; kwargs...)
   isapprox(@view(Δx[2:4]), @view(Δy[2:4]); kwargs...) || isapprox(@view(Δx[2:4]), -@view(Δy[2:4]); kwargs...)
 end
 
-Base.inv(q::Quaternion{T}) where {T} = Rotation(@ga 3 SVector{4,T} inverse(q::(0 + 2))::(0 + 2))
-Base.zero(::Type{T}) where {T<:Quaternion} = T()
+Base.:(*)(q1::Quaternion, q2::Quaternion) = quaternion_from_rotor(@ga 3 SVector{4} begin
+  q1 = q1.w::e + inverse_dual(q1.x::e1 + q1.y::e2 + q1.z::e3)
+  q2 = q2.w::e + inverse_dual(q2.x::e1 + q2.y::e2 + q2.z::e3)
+  (q1 ⟑ q2)::(0 + 2)
+end)
+Base.inv(q::Quaternion{T}) where {T} = quaternion_from_rotor(@ga 3 SVector{4,T} inverse(q.w::e + inverse_dual(q.x::e1 + q.y::e2 + q.z::e3))::(0 + 2))
+Base.zero(::Type{T}) where {T<:Quaternion} = T() # XXX addition is not defined, technically
 Base.one(::Type{T}) where {T<:Quaternion} = T()
 Base.zero(q::Quaternion) = zero(typeof(q))
 Base.one(q::Quaternion) = zero(typeof(q))

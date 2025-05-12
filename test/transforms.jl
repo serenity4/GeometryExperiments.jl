@@ -51,6 +51,8 @@
         p = rand(Point3)
         @test matrix * p ≈ apply_rotation(p, q)
         @test Quaternion(matrix) ≈ q
+        @test q * inv(q) ≈ one(Quaternion) atol = 1e-15
+        @test inv(q) * q ≈ one(Quaternion) atol = 1e-15
       end
 
       for i in 1:100
