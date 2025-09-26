@@ -49,6 +49,7 @@ Base.show(io::IO, elps::Ellipsoid{Dim,T}) where {Dim,T} = print(io, "Ellipsoid{$
 end
 
 Box{Dim,T}(semidiag::Point) where {Dim,T} = Box{Dim,T}(-semidiag, semidiag)
+Box{Dim,T}(semidiag) where {Dim,T} = Box{Dim,T}(Point{Dim,T}(semidiag))
 Box(semidiag::Point{Dim,T}) where {Dim,T} = Box{Dim,T}(semidiag)
 
 function Base.getproperty(box::Box{2}, name::Symbol)

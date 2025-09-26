@@ -57,6 +57,8 @@ function Transform(translation::Translation{Dim,T1}, rotation::Rotation{Dim,T2},
   T = promote_type(T1, T2, T3)
   Transform(convert(Translation{Dim,T}, translation), convert(Rotation{Dim,T}, rotation), convert(Scaling{Dim,T}, scaling))
 end
+Base.convert(::Type{Transform{Dim,T}}, transform::Transform{<:Any,<:Any,<:Quaternion}) where {Dim,T} =
+  Transform{Dim,T,Quaternion{T}}(transform.translation, transform.rotation, transform.scaling)
 
 apply_rotation(p, transform::Transform) = apply_rotation(p, transform.rotation)
 apply_translation(p, transform::Transform) = apply_translation(p, transform.translation)

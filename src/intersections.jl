@@ -23,7 +23,15 @@ end
 # Base.in(p, box::Box) = in(p, sdf(box))
 ⪅(x, y; kwargs...) = x < y || isapprox(x, y; kwargs...)
 
-Base.in(p, box::Box) = all(((x, a, b),) -> a ⪅ x ⪅ b, zip(p, box.min, box.max))
+function Base.in(p, box::Box)
+  for i in eachindex(p)
+    coordinate = p[i]
+    lower = box.min[i]
+    upper = box.max[i]
+    lower ⪅ coordinate ⪅ upper || return false
+  end
+  return true
+end
 Base.in(p, obj::NormedPrimitive) = obj(p) ≤ 0
 Base.in(p, tr::Transformed) = tr(p) ≤ 0
 Base.in(p::Point{N}, proj::Projection{N}) where {N} = p in proj.obj
